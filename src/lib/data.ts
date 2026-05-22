@@ -1,12 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/config";
 import type { Activity, Profile, Project, ProjectWithBuilder, SortOption } from "@/lib/types";
-
-function isSupabaseConfigured() {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
-}
 
 const projectSelect = `
   *,

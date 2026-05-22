@@ -35,12 +35,13 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbG...
 ```
 
-### 4. Run database schema
+### 4. Run database setup (one paste)
 
-In the Supabase **SQL Editor**, run in order:
+In the Supabase **SQL Editor**, run the entire file:
 
-1. `supabase/schema.sql` — tables, RLS, triggers, storage bucket
-2. `supabase/seed.sql` — demo builders, projects, activity feed
+**`supabase/full-setup.sql`** — schema + demo seed in one go
+
+(Or run `schema.sql` then `seed.sql` separately.)
 
 ### 5. Auth settings (local dev)
 
@@ -107,6 +108,16 @@ npm start
 ```
 
 Requires valid Supabase env vars in `.env.local` (or your host’s env config).
+
+## Deploy to Vercel
+
+See **[DEPLOY.md](./DEPLOY.md)** — import the GitHub repo and add the two `NEXT_PUBLIC_*` env vars.
+
+Quick local setup script:
+
+```bash
+chmod +x scripts/setup-local.sh && ./scripts/setup-local.sh
+```
 
 ## License
 

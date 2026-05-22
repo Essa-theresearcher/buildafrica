@@ -126,3 +126,54 @@ export async function createProject(input: CreateProjectInput) {
   revalidatePath("/explore");
   redirect(`/projects/${project?.slug}`);
 }
+
+export interface UpdateProfileInput {
+  full_name: string;
+  bio: string;
+  location: string;
+  skills: string[];
+  whatsapp: string;
+  twitter: string;
+  github: string;
+  linkedin: string;
+  website: string;
+}
+
+export async function updateProfile(input: UpdateProfileInput) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in." };
+  }
+
+  const social_links: Record<string, string> = {};
+  if (input.twitter) social_links.twitter = input.twitter;
+  if (input.github) social_links.github = input.github;
+  if (input.linkedin) social_links.linkedin = input.linkedin;
+  if (input.website) social_links.website = input.website;
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .update({
+      full_name: input.full_name,
+      bio: input.bio,
+      location: input.location,
+      skills: input.skills,
+      whatsapp: input.whatsapp || null,
+      social_links,
+    })
+    .eq("id", user.id)
+    .select("username")
+    .single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath(`/builders/${profile.username}`);
+  redirect(`/builders/${profile.username}`);
+}

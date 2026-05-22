@@ -53,12 +53,20 @@ export async function Navbar() {
           {user ? (
             <>
               {profileUsername && (
-                <Link
-                  href={`/builders/${profileUsername}`}
-                  className="hidden text-sm text-ba-text-muted hover:text-ba-text sm:block"
-                >
-                  Profile
-                </Link>
+                <>
+                  <Link
+                    href={`/builders/${profileUsername}`}
+                    className="hidden text-sm text-ba-text-muted hover:text-ba-text sm:block"
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    href="/settings/profile"
+                    className="hidden text-sm text-ba-text-muted hover:text-ba-text sm:block"
+                  >
+                    Settings
+                  </Link>
+                </>
               )}
               <form action={signOut}>
                 <Button type="submit" variant="ghost" className="!px-3 !py-2">
