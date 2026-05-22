@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4: scan all app source files */
+@source "../**/*.{js,ts,jsx,tsx}";
+
 :root {
   --ba-bg: #0a0a0f;
   --ba-surface: #12121a;
