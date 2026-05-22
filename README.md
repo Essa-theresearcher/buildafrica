@@ -39,9 +39,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbG...
 
 In the Supabase **SQL Editor**, run the entire file:
 
-**`supabase/full-setup.sql`** — schema + demo seed in one go
+**`supabase/full-setup.sql`** — schema only (no demo data)
 
-(Or run `schema.sql` then `seed.sql` separately.)
+To remove old demo rows from an existing database, run **`supabase/clear-demo-data.sql`**.
 
 ### 5. Auth settings (local dev)
 
@@ -67,7 +67,8 @@ buildafrica/
 │   └── lib/                 # Supabase clients, data fetching, actions
 ├── supabase/
 │   ├── schema.sql           # Full DB schema + RLS
-│   └── seed.sql             # Demo data
+│   ├── full-setup.sql       # Same as schema (one-file setup)
+│   └── clear-demo-data.sql  # Remove old demo seed from DB
 ├── .env.example
 └── README.md
 ```
@@ -84,15 +85,9 @@ buildafrica/
 | `/auth/login` | Login |
 | `/auth/signup` | Sign up |
 
-## Demo seed data
+## Data model
 
-**Projects:** invent-pro (linked to [invent-pro](https://github.com/Essa-theresearcher/invent-pro)), HireMatch AI, SchoolFlow, CargoTrack, ClipCraft
-
-### Link invent-pro (already in this repo)
-
-If you seeded before this link, run **`supabase/link-invent-pro.sql`** in the SQL Editor to attach your GitHub project to the showcase.  
-
-**Builders:** Omar Issa, Amina Ali, Ibrahim Hassan, Fadumo Noor, Yahye Mohamed
+No demo seed — projects and profiles are created when builders **sign up** and use **Add Project**.
 
 ## V1 scope (intentionally simple)
 

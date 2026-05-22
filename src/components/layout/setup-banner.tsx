@@ -18,7 +18,7 @@ export function SetupBanner() {
                 <code className="rounded bg-black/20 px-1">.env.local</code>
               </li>
               <li>
-                SQL Editor → run <code className="rounded bg-black/20 px-1">supabase/full-setup.sql</code>
+                SQL Editor → run <code className="rounded bg-black/20 px-1">supabase/full-setup.sql</code> (first time only)
               </li>
               <li>
                 Restart: <code className="rounded bg-black/20 px-1">npm run dev</code>

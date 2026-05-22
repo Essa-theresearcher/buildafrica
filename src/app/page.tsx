@@ -49,8 +49,8 @@ export default async function HomePage() {
         ) : (
           <EmptyState
             title="No featured projects yet"
-            description="Connect Supabase and run the seed script to load demo data."
-            action={<Button href="/explore">Explore Projects</Button>}
+            description="Sign up and add a project, or mark a launch as featured in Supabase."
+            action={<Button href="/projects/new">Add Project</Button>}
           />
         )}
       </section>
