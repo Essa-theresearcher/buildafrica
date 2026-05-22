@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --ba-bg: #0a0a0f;
+  --ba-surface: #12121a;
+  --ba-surface-elevated: #1a1a26;
+  --ba-border: #2a2a3a;
+  --ba-text: #f4f4f8;
+  --ba-text-muted: #9494a8;
+  --ba-accent: #7c5cff;
+  --ba-accent-hover: #9580ff;
+  --ba-accent-blue: #3b82f6;
+  --ba-gradient: linear-gradient(135deg, #7c5cff 0%, #3b82f6 100%);
+}
+
+@theme inline {
+  --color-ba-bg: var(--ba-bg);
+  --color-ba-surface: var(--ba-surface);
+  --color-ba-surface-elevated: var(--ba-surface-elevated);
+  --color-ba-border: var(--ba-border);
+  --color-ba-text: var(--ba-text);
+  --color-ba-text-muted: var(--ba-text-muted);
+  --color-ba-accent: var(--ba-accent);
+  --color-ba-accent-hover: var(--ba-accent-hover);
+  --color-ba-accent-blue: var(--ba-accent-blue);
+  --font-sans: var(--font-geist-sans);
+}
+
+body {
+  background: var(--ba-bg);
+  color: var(--ba-text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Subtle grid background on hero */
+.ba-grid-bg {
+  background-image:
+    linear-gradient(rgba(124, 92, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 92, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.ba-gradient-text {
+  background: var(--ba-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
