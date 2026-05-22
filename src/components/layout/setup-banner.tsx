@@ -12,11 +12,18 @@ export function SetupBanner() {
           <Database className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
           <div>
             <p className="font-medium text-amber-100">Supabase not connected</p>
-            <p className="mt-1 text-sm text-amber-200/80">
-              Add credentials to <code className="rounded bg-black/20 px-1">.env.local</code>,
-              then run <code className="rounded bg-black/20 px-1">supabase/full-setup.sql</code> in
-              the SQL Editor.
-            </p>
+            <ol className="mt-2 list-decimal space-y-1 pl-4 text-sm text-amber-200/80">
+              <li>
+                Supabase → <strong>Settings → API</strong> → copy Project URL + anon key into{" "}
+                <code className="rounded bg-black/20 px-1">.env.local</code>
+              </li>
+              <li>
+                SQL Editor → run <code className="rounded bg-black/20 px-1">supabase/full-setup.sql</code>
+              </li>
+              <li>
+                Restart: <code className="rounded bg-black/20 px-1">npm run dev</code>
+              </li>
+            </ol>
           </div>
         </div>
         <Link

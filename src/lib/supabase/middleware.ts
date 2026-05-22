@@ -1,11 +1,10 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isSupabaseConfigured } from "@/lib/config";
 
 export async function updateSession(request: NextRequest) {
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
+  // Skip Supabase when using .env.example placeholders (avoids "connection failed")
+  if (!isSupabaseConfigured()) {
     return NextResponse.next({ request });
   }
 
@@ -32,7 +31,12 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  try {
+    await supabase.auth.getUser();
+  } catch {
+    // Bad URL, paused project, or network issue — don't block the app
+    return NextResponse.next({ request });
+  }
 
   return supabaseResponse;
 }

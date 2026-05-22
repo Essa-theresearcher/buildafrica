@@ -4,10 +4,18 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 
 const inputClass =
   "w-full rounded-xl border border-ba-border bg-ba-bg px-4 py-2.5 text-sm text-ba-text focus:border-ba-accent focus:outline-none";
+
+function formatAuthError(message: string): string {
+  if (/fetch|network|connection|failed/i.test(message)) {
+    return "Connection failed — check .env.local has the correct Supabase URL and anon key, then restart the dev server.";
+  }
+  return message;
+}
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
@@ -19,6 +27,14 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+
+    if (!isSupabaseConfigured()) {
+      setError(
+        "Supabase is not configured. Edit buildafrica/.env.local with your Project URL and anon key from Supabase → Settings → API, then restart npm run dev."
+      );
+      return;
+    }
+
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
@@ -26,7 +42,14 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     const password = form.get("password") as string;
     const fullName = form.get("full_name") as string;
 
-    const supabase = createClient();
+    let supabase;
+    try {
+      supabase = createClient();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not connect to Supabase.");
+      setLoading(false);
+      return;
+    }
 
     if (mode === "signup") {
       const { error: signUpError } = await supabase.auth.signUp({
@@ -37,7 +60,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         },
       });
       if (signUpError) {
-        setError(signUpError.message);
+        setError(formatAuthError(signUpError.message));
         setLoading(false);
         return;
       }
@@ -47,7 +70,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         password,
       });
       if (signInError) {
-        setError(signInError.message);
+        setError(formatAuthError(signInError.message));
         setLoading(false);
         return;
       }
