@@ -8,6 +8,19 @@ alter table public.profiles drop constraint if exists profiles_id_fkey;
 insert into public.profiles (id, full_name, username, avatar_url, bio, location, skills, whatsapp, email, social_links, build_score)
 values
   (
+    '11111111-1111-1111-1111-111111111100',
+    'Essa',
+    'essa-theresearcher',
+    'https://avatars.githubusercontent.com/u/182337125?v=4',
+    'Builder of invent-pro — production-grade multi-store inventory & POS.',
+    'Somalia',
+    array['NestJS', 'Prisma', 'TypeScript', 'MySQL', 'POS Systems'],
+    null,
+    null,
+    '{"github": "https://github.com/Essa-theresearcher/invent-pro"}'::jsonb,
+    920
+  ),
+  (
     '11111111-1111-1111-1111-111111111101',
     'Omar Issa',
     'omar-issa',
@@ -83,17 +96,17 @@ insert into public.projects (
 values
   (
     '22222222-2222-2222-2222-222222222201',
-    '11111111-1111-1111-1111-111111111101',
-    'InventoryPro',
-    'inventorypro',
-    'Smart inventory management for growing businesses.',
-    'Small retailers lose stock visibility across branches. InventoryPro gives real-time counts, low-stock alerts, and supplier reorder suggestions.',
+    '11111111-1111-1111-1111-111111111100',
+    'invent-pro',
+    'invent-pro',
+    'Production-grade multi-store inventory management + POS system.',
+    'Retail and warehouse teams juggle stock, sales, and branches in spreadsheets. invent-pro centralizes inventory, point-of-sale, multi-store ops, and role-based access in one NestJS + Prisma backend.',
     'Inventory',
-    array['Next.js', 'Supabase', 'Tailwind'],
-    'https://inventorypro.demo',
-    'https://github.com/omarissa/inventorypro',
-    'omar@buildafrica.demo',
-    '+252611000001',
+    array['NestJS', 'Prisma', 'TypeScript', 'MySQL', 'JWT', 'Swagger'],
+    'https://github.com/Essa-theresearcher/invent-pro',
+    'https://github.com/Essa-theresearcher/invent-pro',
+    'hello@buildafrica.demo',
+    null,
     array[
       'https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&q=80',
       'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80'
@@ -174,6 +187,7 @@ on conflict (id) do nothing;
 -- Activity feed
 insert into public.activity (type, user_id, project_id, message, created_at)
 values
+  ('project_launched', '11111111-1111-1111-1111-111111111100', '22222222-2222-2222-2222-222222222201', 'Essa launched invent-pro', now() - interval '12 days'),
   ('project_launched', '11111111-1111-1111-1111-111111111105', '22222222-2222-2222-2222-222222222205', 'Yahye Mohamed launched ClipCraft', now() - interval '1 day'),
   ('project_launched', '11111111-1111-1111-1111-111111111104', '22222222-2222-2222-2222-222222222204', 'Fadumo Noor launched CargoTrack', now() - interval '3 days'),
   ('project_launched', '11111111-1111-1111-1111-111111111103', '22222222-2222-2222-2222-222222222203', 'Ibrahim Hassan launched SchoolFlow', now() - interval '5 days'),

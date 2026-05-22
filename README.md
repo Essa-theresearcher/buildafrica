@@ -86,7 +86,11 @@ buildafrica/
 
 ## Demo seed data
 
-**Projects:** InventoryPro, HireMatch AI, SchoolFlow, CargoTrack, ClipCraft  
+**Projects:** invent-pro (linked to [invent-pro](https://github.com/Essa-theresearcher/invent-pro)), HireMatch AI, SchoolFlow, CargoTrack, ClipCraft
+
+### Link invent-pro (already in this repo)
+
+If you seeded before this link, run **`supabase/link-invent-pro.sql`** in the SQL Editor to attach your GitHub project to the showcase.  
 
 **Builders:** Omar Issa, Amina Ali, Ibrahim Hassan, Fadumo Noor, Yahye Mohamed
 
