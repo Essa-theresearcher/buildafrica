@@ -376,7 +376,10 @@ values
     'https://github.com/aminaali/hirematch',
     'amina@buildafrica.demo',
     '+252611000002',
-    array['https://images.unsplash.com/photo-1521737711862-e3b97311f8bf?w=800&q=80'],
+    array[
+      'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80',
+      'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=80'
+    ],
     2103, 156, true,
     now() - interval '8 days'
   ),
@@ -393,7 +396,10 @@ values
     null,
     'ibrahim@buildafrica.demo',
     '+254711000003',
-    array['https://images.unsplash.com/photo-1503676260728-1c00da280a02?w=800&q=80'],
+    array[
+      'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80',
+      'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800&q=80'
+    ],
     987, 67, true,
     now() - interval '5 days'
   ),
