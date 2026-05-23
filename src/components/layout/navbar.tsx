@@ -16,13 +16,17 @@ export async function Navbar() {
   } = await supabase.auth.getUser();
 
   let profileUsername: string | null = null;
+  let isAdmin = false;
+  let isActive = true;
   if (user) {
     const { data } = await supabase
       .from("profiles")
-      .select("username")
+      .select("username, role, is_active")
       .eq("id", user.id)
       .single();
     profileUsername = data?.username ?? null;
+    isAdmin = data?.role === "admin";
+    isActive = data?.is_active !== false;
   }
 
   return (
@@ -38,7 +42,9 @@ export async function Navbar() {
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
-          {links.map((l) => (
+          {links
+            .filter((l) => l.href !== "/projects/new" || isActive)
+            .map((l) => (
             <Link
               key={l.href}
               href={l.href}
@@ -47,6 +53,14 @@ export async function Navbar() {
               {l.label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="text-sm font-medium text-ba-accent hover:text-ba-accent-hover"
+            >
+              Admin
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">

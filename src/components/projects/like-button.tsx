@@ -22,7 +22,12 @@ export function LikeButton({
     <button
       type="button"
       disabled={pending}
-      onClick={() => startTransition(() => toggleLike(projectId, slug))}
+      onClick={() =>
+        startTransition(async () => {
+          const res = await toggleLike(projectId, slug);
+          if (res?.error) alert(res.error);
+        })
+      }
       className={cn(
         "inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all",
         initialLiked

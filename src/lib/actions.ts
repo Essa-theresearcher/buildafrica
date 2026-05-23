@@ -13,7 +13,10 @@ export async function signOut() {
   redirect("/");
 }
 
-export async function toggleLike(projectId: string, slug: string) {
+export async function toggleLike(
+  projectId: string,
+  slug: string
+): Promise<{ error?: string } | void> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -30,6 +33,15 @@ export async function toggleLike(projectId: string, slug: string) {
     .eq("project_id", projectId)
     .maybeSingle();
 
+  const { data: project } = await supabase
+    .from("projects")
+    .select("status")
+    .eq("id", projectId)
+    .single();
+  if (project?.status !== "approved") {
+    return { error: "Only approved projects can be upvoted." };
+  }
+
   if (existing) {
     await supabase.from("likes").delete().eq("id", existing.id);
   } else {
@@ -45,6 +57,7 @@ export async function toggleLike(projectId: string, slug: string) {
   revalidatePath(`/projects/${slug}`);
   revalidatePath("/");
   revalidatePath("/explore");
+  return undefined;
 }
 
 export async function incrementViews(slug: string) {
@@ -75,6 +88,16 @@ export async function createProject(input: CreateProjectInput) {
     return { error: "You must be logged in to add a project." };
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, is_active")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.is_active) {
+    return { error: "Your account is suspended. Contact support." };
+  }
+
   let slug = slugify(input.title);
   const { data: existing } = await supabase
     .from("projects")
@@ -101,6 +124,8 @@ export async function createProject(input: CreateProjectInput) {
       contact_email: input.contact_email,
       whatsapp: input.whatsapp || null,
       screenshots: input.screenshots,
+      status: "pending",
+      is_featured: false,
     })
     .select("id, slug")
     .single();
@@ -109,22 +134,16 @@ export async function createProject(input: CreateProjectInput) {
     return { error: error.message };
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", user.id)
-    .single();
-
   await supabase.from("activity").insert({
     type: "project_launched",
     user_id: user.id,
     project_id: project.id,
-    message: `${profile?.full_name ?? "A builder"} launched ${input.title}`,
+    message: `${profile?.full_name ?? "A builder"} submitted ${input.title} for review`,
   });
 
   revalidatePath("/");
   revalidatePath("/explore");
-  redirect(`/projects/${project?.slug}`);
+  redirect(`/projects/${project?.slug}?submitted=pending`);
 }
 
 export interface UpdateProfileInput {

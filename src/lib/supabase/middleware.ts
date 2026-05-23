@@ -2,13 +2,18 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isSupabaseConfigured } from "@/lib/config";
 
+function withPathname(request: NextRequest, response: NextResponse) {
+  response.headers.set("x-pathname", request.nextUrl.pathname);
+  return response;
+}
+
 export async function updateSession(request: NextRequest) {
   // Skip Supabase when using .env.example placeholders (avoids "connection failed")
   if (!isSupabaseConfigured()) {
-    return NextResponse.next({ request });
+    return withPathname(request, NextResponse.next({ request }));
   }
 
-  let supabaseResponse = NextResponse.next({ request });
+  let supabaseResponse = withPathname(request, NextResponse.next({ request }));
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,7 +27,7 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse = withPathname(request, NextResponse.next({ request }));
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -35,7 +40,7 @@ export async function updateSession(request: NextRequest) {
     await supabase.auth.getUser();
   } catch {
     // Bad URL, paused project, or network issue — don't block the app
-    return NextResponse.next({ request });
+    return withPathname(request, NextResponse.next({ request }));
   }
 
   return supabaseResponse;

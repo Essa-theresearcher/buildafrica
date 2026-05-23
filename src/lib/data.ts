@@ -6,7 +6,8 @@ const projectSelect = `
   *,
   profiles (
     id, full_name, username, avatar_url, bio, location, skills,
-    whatsapp, email, social_links, build_score, created_at
+    whatsapp, email, social_links, build_score, role, is_active,
+    is_builder_of_week, created_at
   )
 `;
 
@@ -16,6 +17,7 @@ export async function getFeaturedProjects(limit = 6): Promise<ProjectWithBuilder
   const { data, error } = await supabase
     .from("projects")
     .select(projectSelect)
+    .eq("status", "approved")
     .eq("is_featured", true)
     .order("likes", { ascending: false })
     .limit(limit);
@@ -33,6 +35,8 @@ export async function getTrendingBuilders(limit = 5): Promise<Profile[]> {
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
+    .eq("is_active", true)
+    .order("is_builder_of_week", { ascending: false })
     .order("build_score", { ascending: false })
     .limit(limit);
 
@@ -66,7 +70,7 @@ export async function getProjects(options: {
 }): Promise<ProjectWithBuilder[]> {
   if (!isSupabaseConfigured()) return [];
   const supabase = await createClient();
-  let query = supabase.from("projects").select(projectSelect);
+  let query = supabase.from("projects").select(projectSelect).eq("status", "approved");
 
   if (options.search?.trim()) {
     query = query.ilike("title", `%${options.search.trim()}%`);
@@ -97,6 +101,10 @@ export async function getProjects(options: {
 export async function getProjectBySlug(slug: string): Promise<ProjectWithBuilder | null> {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data, error } = await supabase
     .from("projects")
     .select(projectSelect)
@@ -104,7 +112,16 @@ export async function getProjectBySlug(slug: string): Promise<ProjectWithBuilder
     .maybeSingle();
 
   if (error || !data) return null;
-  return data as ProjectWithBuilder;
+
+  const project = data as ProjectWithBuilder;
+  const isOwner = user?.id === project.user_id;
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+    : { data: null };
+  const isAdminUser = profile?.role === "admin";
+
+  if (project.status !== "approved" && !isOwner && !isAdminUser) return null;
+  return project;
 }
 
 export async function getProfileByUsername(username: string): Promise<Profile | null> {
@@ -114,21 +131,26 @@ export async function getProfileByUsername(username: string): Promise<Profile | 
     .from("profiles")
     .select("*")
     .eq("username", username)
+    .eq("is_active", true)
     .maybeSingle();
 
   if (error || !data) return null;
   return data;
 }
 
-export async function getProjectsByUserId(userId: string): Promise<Project[]> {
+export async function getProjectsByUserId(
+  userId: string,
+  options?: { includeNonApproved?: boolean }
+): Promise<Project[]> {
   if (!isSupabaseConfigured()) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("projects")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+  let query = supabase.from("projects").select("*").eq("user_id", userId);
 
+  if (!options?.includeNonApproved) {
+    query = query.eq("status", "approved");
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
   if (error) return [];
   return data ?? [];
 }

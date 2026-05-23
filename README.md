@@ -89,6 +89,38 @@ buildafrica/
 
 No demo seed — projects and profiles are created when builders **sign up** and use **Add Project**.
 
+New projects start as **pending** until an admin approves them.
+
+## Admin portal
+
+1. Run **`supabase/admin-migration.sql`** on your database (after `schema.sql` or `full-setup.sql`).
+2. Run **`supabase/promote-admin.sql`** with your sign-up email to get `role = admin`.
+3. Open **http://localhost:3000/admin**
+
+| Route | Purpose |
+|-------|---------|
+| `/admin` | Dashboard stats |
+| `/admin/projects` | Approve, feature, delete projects |
+| `/admin/builders` | Roles, suspend users |
+| `/admin/featured` | Builder of the Week, featured projects, Launch Friday |
+| `/admin/activity` | Moderate activity feed |
+
+New projects start as **pending** until an admin approves them.
+
+## Admin portal
+
+1. Run **`supabase/admin-migration.sql`** on your database (after `schema.sql` or `full-setup.sql`).
+2. Run **`supabase/promote-admin.sql`** with your sign-up email to get `role = admin`.
+3. Open **http://localhost:3000/admin**
+
+| Route | Purpose |
+|-------|---------|
+| `/admin` | Dashboard stats |
+| `/admin/projects` | Approve, feature, delete projects |
+| `/admin/builders` | Roles, suspend users |
+| `/admin/featured` | Builder of the Week, featured projects, Launch Friday |
+| `/admin/activity` | Moderate activity feed |
+
 ## V1 scope (intentionally simple)
 
 Included: featured/trending sections, views, likes, activity feed, Build Score placeholder, Builder of the Week & Launch Friday placeholders.

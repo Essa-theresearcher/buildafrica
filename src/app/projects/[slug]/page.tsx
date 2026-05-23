@@ -19,10 +19,15 @@ import { formatDate, formatNumber } from "@/lib/utils";
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ submitted?: string }>;
 }
 
-export default async function ProjectDetailPage({ params }: ProjectPageProps) {
+export default async function ProjectDetailPage({
+  params,
+  searchParams,
+}: ProjectPageProps) {
   const { slug } = await params;
+  const { submitted } = await searchParams;
   const project = await getProjectBySlug(slug);
 
   if (!project) notFound();
@@ -31,7 +36,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const isOwner = user?.id === project.user_id;
   const liked = await userLikedProject(user?.id, project.id);
+  const isApproved = project.status === "approved";
 
   const builder = project.profiles;
   const contactHref = project.whatsapp
@@ -40,7 +47,19 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
   return (
     <article className="space-y-10">
-      <ViewTracker slug={slug} />
+      {isApproved && <ViewTracker slug={slug} />}
+
+      {(submitted === "pending" || project.status === "pending") && isOwner && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-200">
+          Your project is pending admin approval. It will appear publicly once approved.
+        </div>
+      )}
+      {project.status === "rejected" && isOwner && (
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-5 py-4 text-sm text-rose-200">
+          This project was rejected
+          {project.rejection_reason ? `: ${project.rejection_reason}` : "."}
+        </div>
+      )}
 
       <header className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
@@ -73,12 +92,14 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           </span>
         </div>
         <div className="flex flex-wrap gap-3">
-          <LikeButton
-            projectId={project.id}
-            slug={slug}
-            likes={project.likes}
-            initialLiked={liked}
-          />
+          {isApproved && (
+            <LikeButton
+              projectId={project.id}
+              slug={slug}
+              likes={project.likes}
+              initialLiked={liked}
+            />
+          )}
           <Button href={contactHref} variant="primary">
             {project.whatsapp ? (
               <>

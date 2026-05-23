@@ -5,6 +5,7 @@ import { ProjectCard } from "@/components/projects/project-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PlaceholderBadge } from "@/components/ui/badge";
 import { getProfileByUsername, getProjectsByUserId } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
 import { formatNumber } from "@/lib/utils";
 
 interface BuilderPageProps {
@@ -20,11 +21,29 @@ const socialIcons: Record<string, React.ComponentType<{ className?: string }>> =
 
 export default async function BuilderProfilePage({ params }: BuilderPageProps) {
   const { username } = await params;
-  const profile = await getProfileByUsername(username);
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let profile = await getProfileByUsername(username);
+  if (!profile && user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("username", username)
+      .eq("id", user.id)
+      .maybeSingle();
+    profile = data;
+  }
 
   if (!profile) notFound();
 
-  const projects = await getProjectsByUserId(profile.id);
+  const isOwner = user?.id === profile.id;
+
+  const projects = await getProjectsByUserId(profile.id, {
+    includeNonApproved: isOwner,
+  });
   const social = (profile.social_links ?? {}) as Record<string, string>;
 
   return (

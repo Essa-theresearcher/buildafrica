@@ -1,5 +1,5 @@
--- BuildAfrica: initial database setup (schema only, no demo data)
--- Paste and run once in Supabase SQL Editor.
+-- BuildAfrica V1 — Supabase schema
+-- Run in Supabase SQL Editor after creating a project.
 
 -- Extensions
 create extension if not exists "uuid-ossp";
@@ -36,6 +36,9 @@ create table public.profiles (
   email text,
   social_links jsonb default '{}',
   build_score integer default 0,
+  role text not null default 'user' check (role in ('user', 'admin')),
+  is_active boolean not null default true,
+  is_builder_of_week boolean not null default false,
   created_at timestamptz default now() not null
 );
 
@@ -59,8 +62,12 @@ create table public.projects (
   views integer default 0 not null,
   likes integer default 0 not null,
   is_featured boolean default false not null,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  rejection_reason text,
   created_at timestamptz default now() not null
 );
+
+create index projects_status_idx on public.projects (status);
 
 create index projects_user_id_idx on public.projects (user_id);
 create index projects_category_idx on public.projects (category);
@@ -90,6 +97,18 @@ create table public.activity (
 );
 
 create index activity_created_at_idx on public.activity (created_at desc);
+
+-- Site settings (Launch Friday, etc.)
+create table public.site_settings (
+  key text primary key,
+  value jsonb not null default '{}',
+  updated_at timestamptz default now() not null
+);
+
+insert into public.site_settings (key, value)
+values
+  ('launch_friday', '{"enabled": false, "title": "Launch Friday", "message": "Batch your launches for maximum visibility."}'::jsonb)
+on conflict (key) do nothing;
 
 -- Auto-create profile on signup
 create or replace function public.handle_new_user()
@@ -166,11 +185,26 @@ as $$
 begin
   update public.projects
   set views = views + 1
-  where slug = project_slug;
+  where slug = project_slug and status = 'approved';
 end;
 $$;
 
 grant execute on function public.increment_project_views(text) to anon, authenticated;
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin' and is_active = true
+  );
+$$;
+
+grant execute on function public.is_admin() to authenticated, anon;
 
 -- Storage bucket for screenshots
 insert into storage.buckets (id, name, public)
@@ -182,29 +216,42 @@ alter table public.profiles enable row level security;
 alter table public.projects enable row level security;
 alter table public.likes enable row level security;
 alter table public.activity enable row level security;
+alter table public.site_settings enable row level security;
 
 -- Profiles policies
-create policy "Profiles are viewable by everyone"
-  on public.profiles for select using (true);
+create policy "Public profiles are viewable"
+  on public.profiles for select
+  using (is_active = true or auth.uid() = id or public.is_admin());
 
 create policy "Users can update own profile"
-  on public.profiles for update using (auth.uid() = id);
+  on public.profiles for update using (auth.uid() = id or public.is_admin());
 
 create policy "Users can insert own profile"
   on public.profiles for insert with check (auth.uid() = id);
 
 -- Projects policies
-create policy "Projects are viewable by everyone"
-  on public.projects for select using (true);
+create policy "Public approved projects are viewable"
+  on public.projects for select
+  using (
+    (status = 'approved' and exists (
+      select 1 from public.profiles p where p.id = projects.user_id and p.is_active = true
+    ))
+    or auth.uid() = user_id
+    or public.is_admin()
+  );
 
-create policy "Authenticated users can create projects"
-  on public.projects for insert with check (auth.uid() = user_id);
+create policy "Active users can create projects"
+  on public.projects for insert
+  with check (
+    auth.uid() = user_id
+    and exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_active = true)
+  );
 
 create policy "Users can update own projects"
-  on public.projects for update using (auth.uid() = user_id);
+  on public.projects for update using (auth.uid() = user_id or public.is_admin());
 
-create policy "Users can delete own projects"
-  on public.projects for delete using (auth.uid() = user_id);
+create policy "Users or admins can delete projects"
+  on public.projects for delete using (auth.uid() = user_id or public.is_admin());
 
 -- Likes policies
 create policy "Likes are viewable by everyone"
@@ -217,11 +264,22 @@ create policy "Users can unlike own likes"
   on public.likes for delete using (auth.uid() = user_id);
 
 -- Activity policies
-create policy "Activity is viewable by everyone"
+create policy "Public activity is viewable"
   on public.activity for select using (true);
 
 create policy "Authenticated users can create activity"
   on public.activity for insert with check (auth.uid() = user_id);
+
+create policy "Admins can delete activity"
+  on public.activity for delete using (public.is_admin());
+
+-- Site settings
+create policy "Public can read site settings"
+  on public.site_settings for select using (true);
+
+create policy "Admins can manage site settings"
+  on public.site_settings for all
+  using (public.is_admin()) with check (public.is_admin());
 
 -- Storage policies
 create policy "Screenshot images are publicly accessible"
