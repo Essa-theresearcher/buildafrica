@@ -39,6 +39,21 @@ router.get("/search", async (req, res) => {
   }
 });
 
+// ── GET /api/startups/my/startup ─────────────────────────────────────────────
+// NOTE: must be before /:slug to avoid "my" being captured as a slug
+router.get("/my/startup", requireAuth, async (req, res) => {
+  const clerkId = (req as any).clerkUserId;
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, name FROM startups WHERE founder_clerk_id = $1 AND is_active = true LIMIT 1`,
+      [clerkId]
+    );
+    res.json({ startup: rows[0] || null });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch startup" });
+  }
+});
+
 // ── GET /api/startups ────────────────────────────────────────────────────────
 router.get("/", async (req, res) => {
   const { stage, category, sort, q } = req.query as Record<string, string>;
@@ -98,7 +113,37 @@ router.get("/", async (req, res) => {
   }
 });
 
+// ── GET /api/startups/:id/upvote-status ──────────────────────────────────────
+// NOTE: must be before /:slug — two-segment paths won't conflict, but ordering
+//       here keeps all specific sub-resource routes together above the catch-all
+router.get("/:id/upvote-status", requireAuth, async (req, res) => {
+  const clerkId = (req as any).clerkUserId;
+  try {
+    const { rows } = await pool.query(
+      `SELECT id FROM startup_upvotes WHERE startup_id = $1 AND user_clerk_id = $2`,
+      [req.params.id, clerkId]
+    );
+    res.json({ upvoted: rows.length > 0 });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to check upvote status" });
+  }
+});
+
+// ── GET /api/startups/:id/updates ────────────────────────────────────────────
+router.get("/:id/updates", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM startup_updates WHERE startup_id = $1 ORDER BY created_at DESC`,
+      [req.params.id]
+    );
+    res.json({ updates: rows });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch updates" });
+  }
+});
+
 // ── GET /api/startups/:slug ──────────────────────────────────────────────────
+// Keep this LAST among GET routes — it is the single-segment catch-all
 router.get("/:slug", async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -205,20 +250,6 @@ router.post("/check-slug", async (req, res) => {
   }
 });
 
-// ── GET /api/startups/my/startup ─────────────────────────────────────────────
-router.get("/my/startup", requireAuth, async (req, res) => {
-  const clerkId = (req as any).clerkUserId;
-  try {
-    const { rows } = await pool.query(
-      `SELECT id, slug, name FROM startups WHERE founder_clerk_id = $1 AND is_active = true LIMIT 1`,
-      [clerkId]
-    );
-    res.json({ startup: rows[0] || null });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch startup" });
-  }
-});
-
 // ── POST /api/startups/:id/view ──────────────────────────────────────────────
 router.post("/:id/view", async (req, res) => {
   const auth = getAuth(req);
@@ -258,33 +289,6 @@ router.post("/:id/upvote", requireAuth, async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ error: "Failed to toggle upvote" });
-  }
-});
-
-// ── GET /api/startups/:id/upvote-status ──────────────────────────────────────
-router.get("/:id/upvote-status", requireAuth, async (req, res) => {
-  const clerkId = (req as any).clerkUserId;
-  try {
-    const { rows } = await pool.query(
-      `SELECT id FROM startup_upvotes WHERE startup_id = $1 AND user_clerk_id = $2`,
-      [req.params.id, clerkId]
-    );
-    res.json({ upvoted: rows.length > 0 });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to check upvote status" });
-  }
-});
-
-// ── GET /api/startups/:id/updates ────────────────────────────────────────────
-router.get("/:id/updates", async (req, res) => {
-  try {
-    const { rows } = await pool.query(
-      `SELECT * FROM startup_updates WHERE startup_id = $1 ORDER BY created_at DESC`,
-      [req.params.id]
-    );
-    res.json({ updates: rows });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch updates" });
   }
 });
 
