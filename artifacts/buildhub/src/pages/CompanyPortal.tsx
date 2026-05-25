@@ -6,12 +6,29 @@ import {
 } from "lucide-react";
 import { builders, companyRequests } from "@/data/seed";
 import { ReputationBadge } from "@/components/builders/ReputationBadge";
+import { useRequireRole } from "@/hooks/useRequireRole";
+
+function PortalLoader() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "40vh" }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: "50%", border: "3px solid var(--accent)",
+          borderTopColor: "transparent", margin: "0 auto 16px",
+          animation: "spin 0.8s linear infinite",
+        }} />
+        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading your portal…</p>
+      </div>
+    </div>
+  );
+}
 
 function getInitials(name: string) {
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
 }
 
 export default function CompanyPortal() {
+  const { ready } = useRequireRole("company");
   const { user } = useUser();
   const firstName = user?.firstName || "there";
 
@@ -28,6 +45,8 @@ export default function CompanyPortal() {
     const matchA = availFilter === "all" || b.availability === availFilter;
     return matchQ && matchA;
   });
+
+  if (!ready) return <PortalLoader />;
 
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto" }}>

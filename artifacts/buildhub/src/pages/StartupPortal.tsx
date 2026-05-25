@@ -6,6 +6,22 @@ import {
   ArrowUpRight, Pencil, Zap,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { useRequireRole } from "@/hooks/useRequireRole";
+
+function PortalLoader() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "40vh" }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: "50%", border: "3px solid var(--accent)",
+          borderTopColor: "transparent", margin: "0 auto 16px",
+          animation: "spin 0.8s linear infinite",
+        }} />
+        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading your portal…</p>
+      </div>
+    </div>
+  );
+}
 
 function StatBox({ label, value, icon }: { label: string; value: number | string; icon: React.ReactNode }) {
   return (
@@ -20,6 +36,7 @@ function StatBox({ label, value, icon }: { label: string; value: number | string
 }
 
 export default function StartupPortal() {
+  const { ready } = useRequireRole("startup");
   const { user } = useUser();
   const firstName = user?.firstName || "Founder";
 
@@ -27,6 +44,7 @@ export default function StartupPortal() {
     queryKey: ["my-startup"],
     queryFn: () => apiFetch("/api/startups/my/startup"),
     staleTime: 60_000,
+    enabled: ready,
   });
 
   const startup = myStartupData?.startup ?? null;
@@ -39,6 +57,8 @@ export default function StartupPortal() {
   });
 
   const updates = updatesData?.updates ?? [];
+
+  if (!ready) return <PortalLoader />;
 
   const updateTypeStyle: Record<string, { bg: string; color: string; border: string }> = {
     shipped: { bg: "var(--success-bg)", color: "var(--success)", border: "1px solid var(--success-border)" },

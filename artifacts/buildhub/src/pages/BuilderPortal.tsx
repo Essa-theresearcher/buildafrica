@@ -7,6 +7,22 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { builders, projects, companyRequests } from "@/data/seed";
+import { useRequireRole } from "@/hooks/useRequireRole";
+
+function PortalLoader() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "40vh" }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: "50%", border: "3px solid var(--accent)",
+          borderTopColor: "transparent", margin: "0 auto 16px",
+          animation: "spin 0.8s linear infinite",
+        }} />
+        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading your portal…</p>
+      </div>
+    </div>
+  );
+}
 
 function getInitials(name: string) {
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -98,6 +114,7 @@ function VerificationCard({ status }: { status: string | null }) {
 }
 
 export default function BuilderPortal() {
+  const { ready } = useRequireRole("builder");
   const { user } = useUser();
   const firstName = user?.firstName || "Builder";
 
@@ -105,7 +122,10 @@ export default function BuilderPortal() {
     queryKey: ["verify-status"],
     queryFn: () => apiFetch("/api/verify/status"),
     staleTime: 60_000,
+    enabled: ready,
   });
+
+  if (!ready) return <PortalLoader />;
 
   const verificationStatus = verifyData?.application?.status ?? null;
 
