@@ -1,0 +1,406 @@
+You are building the BuildHub Verification Feature.
+Do not write explanatory text.
+Do not write placeholder comments that say "add logic here".
+Do not write UI that just displays static text.
+Write working, functional code for every step below.
+
+=======================================================
+WHAT YOU ARE BUILDING
+=======================================================
+
+A verification flow inside the BuildHub platform.
+Builders apply to get a Verified Builder badge.
+They receive a coding challenge.
+They submit their work.
+An admin reviews it and conducts a live call.
+Admin grants or denies the badge.
+
+Every step below is a real working feature.
+Build each one completely before moving to the next.
+
+=======================================================
+STEP 1 — BUILD THE DATABASE TABLES FIRST
+=======================================================
+
+Create these tables in Supabase with exact column names:
+
+TABLE: verification_applications
+- id: uuid, primary key, default gen_random_uuid()
+- builder_id: uuid, foreign key → profiles.id
+- status: text, default 'pending'
+  allowed values: 'pending', 'challenge_assigned', 
+  'submitted', 'call_scheduled', 'passed', 
+  'failed', 'conditional_pass'
+- primary_skill: text
+  allowed values: 'frontend', 'backend', 
+  'fullstack', 'mobile', 'data', 'devops'
+- challenge_id: uuid, nullable, 
+  foreign key → challenges.id
+- challenge_assigned_at: timestamptz, nullable
+- challenge_deadline: timestamptz, nullable
+- submission_github_url: text, nullable
+- submission_demo_url: text, nullable
+- submission_explanation: text, nullable
+- submission_screenshot_url: text, nullable
+- submitted_at: timestamptz, nullable
+- call_scheduled_at: timestamptz, nullable
+- call_completed_at: timestamptz, nullable
+- admin_notes: text, nullable
+- admin_checklist: jsonb, nullable
+- decision_made_at: timestamptz, nullable
+- created_at: timestamptz, default now()
+
+TABLE: challenges
+- id: uuid, primary key, default gen_random_uuid()
+- title: text, not null
+- skill_category: text, not null
+  allowed values: 'frontend', 'backend', 
+  'fullstack', 'mobile', 'data', 'devops'
+- description: text, not null
+- requirements: jsonb, not null
+  (array of strings, each is a specific requirement)
+- local_context: text, not null
+  (explains the East African real-world scenario)
+- time_limit_hours: integer, default 72
+- is_active: boolean, default true
+- created_at: timestamptz, default now()
+
+TABLE: builder_badges
+- id: uuid, primary key, default gen_random_uuid()
+- builder_id: uuid, foreign key → profiles.id
+- badge_type: text, not null
+  allowed values: 'verified_builder', 
+  'shipped_project', 'strong_explainer',
+  'reliable_collaborator', 'coffee_code_member'
+- badge_scope: text, nullable
+  (example: 'frontend only' or 'backend only')
+- granted_by: uuid, foreign key → profiles.id
+- granted_at: timestamptz, default now()
+- is_active: boolean, default true
+
+TABLE: admin_call_checklist
+- id: uuid, primary key, default gen_random_uuid()
+- application_id: uuid, 
+  foreign key → verification_applications.id
+- can_demo_without_hesitation: boolean, default false
+- can_explain_approach: boolean, default false
+- answered_unexpected_questions: boolean, default false
+- made_live_change: boolean, default false
+- commit_history_real: boolean, default false
+- has_other_projects: boolean, default false
+- knows_community: boolean, default false
+- gut_feeling_pass: boolean, default false
+- total_checked: integer, 
+  generated always as (
+    (can_demo_without_hesitation::int +
+     can_explain_approach::int +
+     answered_unexpected_questions::int +
+     made_live_change::int +
+     commit_history_real::int +
+     has_other_projects::int +
+     knows_community::int +
+     gut_feeling_pass::int)
+  ) stored
+- admin_id: uuid, foreign key → profiles.id
+- completed_at: timestamptz, default now()
+
+Write the SQL for all 4 tables.
+Include Row Level Security policies:
+- Builders can only read their own application
+- Builders can insert one application per profile
+- Builders can update their own application 
+  only when status is 'challenge_assigned'
+  (this is when they submit their work)
+- Admins can read and update all applications
+- Challenges table is readable by all authenticated users
+- builder_badges table is readable by everyone
+- Only admins can insert into builder_badges
+
+=======================================================
+STEP 2 — BUILD THE CHALLENGE LIBRARY SEED DATA
+=======================================================
+
+Insert exactly these challenges into the challenges table.
+Use real INSERT SQL statements, not placeholder data.
+
+INSERT challenge:
+title: 'The Duka Receipt Builder'
+skill_category: 'frontend'
+local_context: 'A small shop owner in Nairobi needs 
+a simple web tool to create receipts for customers 
+without buying expensive POS software.'
+requirements: [
+  "Input fields for item name, quantity, and price",
+  "Ability to add multiple items to one receipt",
+  "Auto-calculate subtotal, tax at 16% VAT, and total",
+  "A print button that opens the browser print dialog",
+  "Mobile responsive — shop owner uses a phone",
+  "No backend required — runs entirely in the browser",
+  "Deployed live via Vercel, Netlify, or GitHub Pages"
+]
+time_limit_hours: 72
+
+INSERT challenge:
+title: 'The Bodaboda Tracker Dashboard'
+skill_category: 'frontend'
+local_context: 'A bodaboda (motorbike delivery) business 
+owner in Nairobi needs a simple dashboard to see 
+rider activity and daily earnings at a glance.'
+requirements: [
+  "Display a list of riders with status: active or offline",
+  "Show total deliveries completed today per rider",
+  "Show total earnings today — calculated from deliveries",
+  "A simple filter: show only active riders",
+  "Use hardcoded dummy data for 5 riders",
+  "Mobile responsive",
+  "Deployed live"
+]
+time_limit_hours: 72
+
+INSERT challenge:
+title: 'The Inventory REST API'
+skill_category: 'backend'
+local_context: 'A small wholesale shop in Eastleigh 
+needs a basic API to track stock levels so they 
+stop losing money on untracked inventory.'
+requirements: [
+  "POST /products — add a new product with name, 
+   category, quantity, unit price",
+  "GET /products — return all products",
+  "PATCH /products/:id — update stock quantity",
+  "DELETE /products/:id — remove a product",
+  "GET /products/low-stock — return products 
+   where quantity is below 5",
+  "Use PostgreSQL or SQLite",
+  "Include a README with setup and test instructions",
+  "Deployed live or fully runnable locally 
+   with one command"
+]
+time_limit_hours: 72
+
+INSERT challenge:
+title: 'The M-Pesa Callback Handler'
+skill_category: 'backend'
+local_context: 'A small e-commerce shop in Nairobi 
+needs to automatically confirm M-Pesa payments 
+so staff stop manually checking phones all day.'
+requirements: [
+  "A POST endpoint at /mpesa/callback that receives 
+   a simulated Safaricom STK push callback payload",
+  "Parse these fields from the payload: 
+   MerchantRequestID, CheckoutRequestID, 
+   ResultCode, ResultDesc, Amount, 
+   MpesaReceiptNumber, PhoneNumber",
+  "If ResultCode is 0 save the transaction 
+   to database as confirmed",
+  "If ResultCode is not 0 save as failed 
+   with the ResultDesc as reason",
+  "A GET endpoint at /transactions that returns 
+   all saved transactions",
+  "Return correct HTTP status codes and JSON responses",
+  "Include a sample payload in the README 
+   for testing with Postman or curl"
+]
+time_limit_hours: 72
+
+INSERT challenge:
+title: 'The Community Notice Board'
+skill_category: 'fullstack'
+local_context: 'A residential estate in Nairobi needs 
+a simple notice board so residents stop missing 
+important announcements posted on WhatsApp groups.'
+requirements: [
+  "Anyone can view all notices without logging in",
+  "Registered users can post a notice with 
+   title, body text, and category: 
+   Security, Maintenance, Event, General",
+  "Admin user can delete any notice",
+  "Notices display newest first",
+  "Each notice shows: title, category, 
+   posted by username, time posted",
+  "Simple auth: email and password signup and login",
+  "Full stack: real database, real auth, deployed live",
+  "No fake or hardcoded data in the deployed version"
+]
+time_limit_hours: 72
+
+INSERT challenge:
+title: 'The Field Report Mobile App'
+skill_category: 'mobile'
+local_context: 'Field agents for an NGO in rural Kenya 
+need to submit incident reports from areas with 
+poor internet. Reports must save offline and sync later.'
+requirements: [
+  "A form with fields: location text input, 
+   issue type picker, description text area, 
+   one photo from camera or gallery",
+  "If no internet: save the report to local storage",
+  "When internet returns: automatically sync 
+   saved reports to a backend",
+  "A list screen showing all submitted reports",
+  "Show sync status on each report: 
+   saved locally or synced",
+  "Build with React Native or Flutter",
+  "Submit APK or TestFlight link OR 
+   a screen recording of the app working"
+]
+time_limit_hours: 72
+
+=======================================================
+STEP 3 — BUILD THE BUILDER-FACING PAGES
+=======================================================
+
+PAGE 1: /verify — Application Start Page
+
+Build this page with working logic, not static text.
+
+Show this only if the builder:
+- Is logged in (check Supabase auth session)
+- Has a complete profile 
+  (full_name, bio, location, skills all filled in)
+- Has at least one project on their profile
+- Does NOT already have a pending or active application
+
+If any condition fails, show exactly why with a 
+specific message and a button to fix it.
+Do not show a generic error.
+
+If all conditions pass, render:
+- Heading: "Apply for Builder Verification"
+- Paragraph: explain the 4-step process briefly
+- A select dropdown for primary_skill
+  options: Frontend, Backend, Full Stack, 
+  Mobile, Data, DevOps
+- A submit button: "Start Verification"
+- On submit: insert a new row into 
+  verification_applications with status 'pending'
+- After insert: redirect to /verify/status
+
+PAGE 2: /verify/status — Builder's Application Status Page
+
+Fetch the builder's current application from Supabase.
+Render a visual step tracker with 5 steps:
+Step 1: Applied
+Step 2: Challenge Assigned
+Step 3: Submitted
+Step 4: Call Scheduled
+Step 5: Decision Made
+
+Highlight the current step based on the 
+application status column.
+
+When status is 'challenge_assigned':
+- Show the full challenge details from the challenges table
+- Show a countdown timer: 
+  "72 hours remaining" counting down in real time
+  calculated from challenge_deadline column
+- Show the submission form (see below)
+
+When status is 'submitted':
+- Show what they submitted
+- Show: "Waiting for admin to schedule your call"
+
+When status is 'call_scheduled':
+- Show the scheduled call time from call_scheduled_at
+- Show: "Your call is confirmed. Be ready to demo 
+  your project live."
+
+When status is 'passed':
+- Show a green badge: "Verified Builder"
+- Show the admin notes if any
+- Show a button: "View your profile"
+
+When status is 'failed':
+- Show the admin feedback message
+- Show: "You can reapply in 60 days"
+
+When status is 'conditional_pass':
+- Show the badge with scope limitation
+- Show the admin notes explaining the scope
+
+PAGE 3: The Submission Form (rendered inside /verify/status)
+
+Only visible when status is 'challenge_assigned'
+and current time is before challenge_deadline.
+
+Fields:
+- GitHub Repository URL
+  validate: must start with https://github.com/
+  validate: must not be empty
+  
+- Live Demo URL
+  validate: must start with https://
+  validate: must not be empty
+
+- Written Explanation textarea
+  label: "What did you build, what was the 
+  hardest problem you solved, and what would 
+  you change with more time?"
+  validate: minimum 150 characters
+  validate: maximum 500 characters
+  show character count live as they type
+
+- Screenshot upload
+  accept: image files only
+  upload to Supabase storage bucket: 
+  'verification-screenshots'
+  store the public URL in the database
+
+On submit:
+- Validate all fields
+- Upload screenshot and get public URL
+- Update verification_applications row:
+  submission_github_url, submission_demo_url,
+  submission_explanation, submission_screenshot_url,
+  submitted_at = now(), status = 'submitted'
+- Show success message
+- Redirect to /verify/status
+
+=======================================================
+STEP 4 — BUILD THE ADMIN DASHBOARD PAGES
+=======================================================
+
+All admin pages live under /admin/
+Protect every admin route: 
+check if the logged in user has role 'admin' 
+in the profiles table.
+If not admin, redirect to home page immediately.
+
+PAGE: /admin/verifications
+
+Fetch all verification_applications with 
+joined data from profiles and challenges tables.
+
+Display as a table with columns:
+- Builder name and avatar
+- Application date
+- Primary skill
+- Current status (show as colored badge)
+- Challenge assigned (yes/no)
+- Submitted (yes/no)
+- Actions column
+
+Filter buttons at top:
+- All
+- Pending (needs challenge assigned)
+- Submitted (needs call scheduled)
+- Call Scheduled (needs decision)
+
+For each row with status 'pending':
+Show button: "Assign Challenge"
+On click: open a modal
+
+ASSIGN CHALLENGE MODAL:
+- Fetch challenges where skill_category 
+  matches the application's primary_skill
+- Show each challenge as a selectable card
+  with title and requirements preview
+- Admin clicks one challenge to select it
+- Button: "Assign This Challenge"
+- On confirm:
+  UPDATE verification_applications:
+  challenge_id = selected challenge id
+  status = 'challenge_assigned'
+  challenge_assigned_at = now()
+  challenge_deadline = now() + interval '72 hours'
+- Close moda
