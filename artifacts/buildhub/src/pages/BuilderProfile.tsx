@@ -118,25 +118,48 @@ export default function BuilderProfile({ params }: { params: { username: string 
           </div>
 
           <div style={{ flex: 1, minWidth: 200 }}>
-            {/* Name + verification (Q2: Verified by human?) */}
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            {/* Name + verification checkmark */}
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.03em", margin: 0 }}>
                 {builder.name}
               </h1>
               {isVerified && (
                 <span
-                  className="badge badge-verified"
-                  title="Reviewed and approved by a BuildHub admin based on shipped product history."
-                  style={{ fontSize: 12, padding: "4px 10px" }}
+                  title="BuildHub Verified — this builder was reviewed and approved by a BuildHub admin."
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    background: "var(--accent)",
+                    color: "#fff",
+                    flexShrink: 0,
+                    cursor: "help",
+                  }}
                 >
-                  <ShieldCheck style={{ width: 11, height: 11 }} />
-                  Verified by BuildHub Admin
+                  <ShieldCheck style={{ width: 14, height: 14 }} />
                 </span>
               )}
               {isPending && (
-                <span className="badge badge-available" style={{ fontSize: 12 }}>
-                  <AlertCircle style={{ width: 11, height: 11 }} />
-                  Verification Pending
+                <span
+                  title="Verification pending — this profile is under admin review."
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    background: "var(--warning-bg)",
+                    border: "1.5px solid var(--warning-border)",
+                    color: "var(--warning)",
+                    flexShrink: 0,
+                    cursor: "help",
+                  }}
+                >
+                  <AlertCircle style={{ width: 13, height: 13 }} />
                 </span>
               )}
             </div>
@@ -180,64 +203,6 @@ export default function BuilderProfile({ params }: { params: { username: string 
             <span style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "right" }}>{builder.contact}</span>
           </div>
         </div>
-      </div>
-
-      {/* ── 5-QUESTION ANSWER ROW ─────────────────────────────── */}
-      <div
-        className="card"
-        style={{
-          marginBottom: 24,
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          overflow: "hidden",
-        }}
-      >
-        {[
-          {
-            q: "01",
-            label: "Products shipped",
-            value: `${builderProjects.length} total, ${launchedCount} live`,
-            color: "var(--accent)",
-          },
-          {
-            q: "02",
-            label: "Verification",
-            value: isVerified ? "Admin-verified ✓" : isPending ? "Under review" : "Self-listed",
-            color: isVerified ? "var(--success)" : isPending ? "var(--warning)" : "var(--text-muted)",
-          },
-          {
-            q: "03",
-            label: "Peer endorsements",
-            value: endorsements.length > 0 ? `${endorsements.length} from collaborators` : "None yet",
-            color: endorsements.length > 0 ? "var(--success)" : "var(--text-muted)",
-          },
-          {
-            q: "04",
-            label: "Availability",
-            value: builder.availability,
-            color: availColor.color,
-          },
-          {
-            q: "05",
-            label: "Contact",
-            value: "Direct email",
-            color: "var(--accent)",
-          },
-        ].map((item, i, arr) => (
-          <div
-            key={item.q}
-            style={{
-              padding: "16px 18px",
-              borderRight: i < arr.length - 1 ? "1px solid var(--border)" : "none",
-            }}
-          >
-            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.1em", color: "var(--border)", marginBottom: 6 }}>
-              Q{item.q}
-            </div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>{item.label}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: item.color }}>{item.value}</div>
-          </div>
-        ))}
       </div>
 
       {/* ── MAIN CONTENT: two columns ─────────────────────────── */}
@@ -422,32 +387,45 @@ export default function BuilderProfile({ params }: { params: { username: string 
         {/* RIGHT SIDEBAR */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-          {/* Verification explained (Q2 detail) */}
+          {/* Verification status — minimal */}
           <div
             className="card"
             style={{
-              padding: 20,
-              background: isVerified ? "var(--accent-subtle)" : undefined,
-              borderColor: isVerified ? "var(--accent-subtle-md)" : undefined,
+              padding: "14px 18px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              background: isVerified ? "var(--accent-subtle)" : isPending ? "var(--warning-bg)" : undefined,
+              borderColor: isVerified ? "var(--accent-subtle-md)" : isPending ? "var(--warning-border)" : undefined,
             }}
           >
-            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: isVerified ? "var(--accent)" : "var(--text-muted)", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 6 }}>
-              <ShieldCheck style={{ width: 12, height: 12 }} />
-              {isVerified ? "Verified Builder" : isPending ? "Verification Pending" : "Not Yet Verified"}
-            </h3>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, margin: "0 0 10px" }}>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                background: isVerified ? "var(--accent)" : isPending ? "var(--warning-bg)" : "var(--surface-elevated)",
+                border: isVerified ? "none" : `1.5px solid ${isPending ? "var(--warning-border)" : "var(--border)"}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
               {isVerified
-                ? "A BuildHub admin has reviewed this profile, confirmed shipped products, and approved this builder. Verification is not self-granted."
+                ? <ShieldCheck style={{ width: 16, height: 16, color: "#fff" }} />
                 : isPending
-                ? "This builder's profile is currently under admin review for verification."
-                : "This builder has not yet been reviewed by a BuildHub admin."}
-            </p>
-            {isVerified && (
-              <div style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
-                <ShieldCheck style={{ width: 11, height: 11 }} />
-                Admin-approved, not self-listed
+                ? <AlertCircle style={{ width: 15, height: 15, color: "var(--warning)" }} />
+                : <AlertCircle style={{ width: 15, height: 15, color: "var(--text-muted)" }} />}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: isVerified ? "var(--accent)" : isPending ? "var(--warning)" : "var(--text-muted)" }}>
+                {isVerified ? "BuildHub Verified" : isPending ? "Under Review" : "Not Verified"}
               </div>
-            )}
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                {isVerified ? "Admin-reviewed, not self-listed" : isPending ? "Awaiting admin review" : "Self-listed profile"}
+              </div>
+            </div>
           </div>
 
           {/* Skills with proof receipts */}
