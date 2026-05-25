@@ -1,0 +1,103 @@
+The single most powerful thing BuildHub must communicate to every 
+company or client who visits is this:
+
+PROOF OF WORK — NOT PROOF OF TALK
+
+When a client lands on BuildHub looking for a builder, they are 
+carrying one fear:
+
+"I will pay someone, they will disappear, ghost me, or deliver 
+something broken."
+
+That fear is why they go to Toptal and pay $150/hour.
+That fear is why they post on Upwork and wade through 200 bids.
+That fear is why they ask their WhatsApp contacts instead of 
+using a platform.
+
+BuildHub kills that fear not with promises — but with evidence.
+
+WHAT PROOF OF WORK LOOKS LIKE ON BUILDHUB
+==========================================
+
+When a client views a builder profile they must immediately see:
+
+1. SHIPPED PRODUCTS — not "projects I worked on"
+   Real launched products with live demo links, screenshots, 
+   and exactly what this builder contributed. Not team projects 
+   where their role is unclear. Specific. Attributed. Verifiable.
+
+2. STATUS TAGS THAT MEAN SOMETHING
+   - "Verified Builder" = admin has reviewed and approved this person
+   - "Shipped Project" = has at least one live launched product on record
+   - "Reliable Collaborator" = other builders have worked with them 
+     and confirmed they delivered
+   - "Available for Work" = actively looking right now
+   - "Coffee & Code Member" = part of a known trusted community
+   
+   These tags are earned, not self-assigned.
+   A builder cannot give themselves "Verified Builder."
+   An admin grants it after review.
+   This is what makes the tag mean something.
+
+3. COLLABORATION HISTORY — not just solo projects
+   Has this builder worked with other people and delivered?
+   Were they on a team? What did they specifically build?
+   This answers: "Can they work with my team or just alone?"
+
+4. TECH STACK WITH RECEIPTS
+   Not a list of buzzwords like on LinkedIn.
+   Every skill claim is backed by a project that used it.
+   If a builder says they know React, there must be a shipped 
+   React project visible on their profile. No project = no tag.
+
+5. PROJECT STATUS HONESTY
+   Every project has a status: Idea / Building / Launched / Verified
+   Clients can filter by "Launched" or "Verified" only.
+   This means a builder cannot pad their profile with 
+   half-finished side projects to look more impressive.
+   Honesty is built into the structure.
+
+THE FEATURE THAT MAKES THIS REAL
+==================================
+
+The Admin Reliability Layer.
+
+This is what no other platform has for East Africa.
+
+When a company submits a request, the admin does not just 
+send a list of profiles. The admin adds private notes:
+
+"Omar delivered the inventory module 2 days early."
+"Amina communicated clearly throughout the project."
+"Ibrahim went quiet for a week mid-project — flag for follow-up."
+
+These notes are not public. But they power the matching.
+The admin only matches builders with a clean reliability record.
+
+This means when a company gets a match from BuildHub, 
+they are not getting a random bidder.
+They are getting someone a human being has personally 
+vouched for based on real execution history.
+
+That is the product.
+That is what Upwork cannot sell.
+That is what Toptal charges $150/hour to approximate.
+BuildHub does it from inside the community — at community cost.
+
+DESIGN INSTRUCTION
+===================
+
+Every builder profile page must load and within 3 seconds 
+the client must be able to answer:
+
+1. What has this person actually shipped?
+2. Is this person verified by a human, or self-listed?
+3. What did other people say about working with them?
+4. Are they available right now?
+5. How do I contact them directly?
+
+If the profile page cannot answer all 5 questions 
+in under 10 seconds of reading — redesign it.
+
+That is proof of work.
+That is BuildHub.

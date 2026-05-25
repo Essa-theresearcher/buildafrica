@@ -7,6 +7,11 @@ export type ReputationTag =
 
 export type ProjectStatus = "Idea" | "Building" | "Launched" | "Verified";
 
+export interface Endorsement {
+  fromId: string;
+  note: string;
+}
+
 export interface Builder {
   id: string;
   name: string;
@@ -21,6 +26,7 @@ export interface Builder {
   tags: ReputationTag[];
   projectIds: string[];
   collaborators: string[];
+  endorsements?: Endorsement[];
   contact: string;
   joinedAt: string;
   adminNotes?: string;
