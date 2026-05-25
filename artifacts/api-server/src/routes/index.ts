@@ -3,10 +3,12 @@ import healthRouter from "./health.js";
 import verificationRouter from "./verification.js";
 import startupsRouter from "./startups.js";
 import marketingRouter from "./marketing.js";
+import meRouter from "./me.js";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use("/me", meRouter);
 router.use("/verify", verificationRouter);
 router.use("/startups", startupsRouter);
 router.use("/marketing", marketingRouter);

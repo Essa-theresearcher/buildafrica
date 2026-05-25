@@ -21,6 +21,11 @@ import StartupProfile from "@/pages/StartupProfile";
 import StartupNew from "@/pages/StartupNew";
 import StartupPromote from "@/pages/StartupPromote";
 import AdminMarketing from "@/pages/AdminMarketing";
+import Onboarding from "@/pages/Onboarding";
+import Dashboard from "@/pages/Dashboard";
+import BuilderPortal from "@/pages/BuilderPortal";
+import StartupPortal from "@/pages/StartupPortal";
+import CompanyPortal from "@/pages/CompanyPortal";
 
 // ── Clerk config ──────────────────────────────────────────────────────────────
 // REQUIRED — copy verbatim per Replit Clerk skill
@@ -121,7 +126,7 @@ function SignUpPage() {
 function HomeRedirect() {
   return (
     <>
-      <Show when="signed-in"><Redirect to="/builders" /></Show>
+      <Show when="signed-in"><Redirect to="/dashboard" /></Show>
       <Show when="signed-out"><Home /></Show>
     </>
   );
@@ -238,6 +243,11 @@ function ClerkProviderWithRoutes() {
                 <Route path="/startups/:slug" component={StartupProfile} />
                 <Route path="/startups" component={Startups} />
                 <Route path="/admin/marketing" component={AdminMarketing} />
+                <Route path="/onboarding" component={Onboarding} />
+                <Route path="/dashboard" component={Dashboard} />
+                <Route path="/portal/builder" component={BuilderPortal} />
+                <Route path="/portal/startup" component={StartupPortal} />
+                <Route path="/portal/company" component={CompanyPortal} />
                 <Route component={NotFound} />
               </Switch>
             </AppShell>
