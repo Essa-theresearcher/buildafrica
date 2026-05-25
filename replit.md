@@ -35,7 +35,7 @@ BuildHub is a trusted builder discovery platform that helps developers prove exe
 
 ## Pages
 
-- `/` — Home/Landing (redirects signed-in users to /builders)
+- `/` — Home/Landing (shown to everyone; signed-in users get a "My Portal" link in the navbar)
 - `/sign-in` — Clerk branded sign-in
 - `/sign-up` — Clerk branded sign-up
 - `/builders` — Builders Directory (search, filter by availability/verified)
@@ -50,6 +50,8 @@ BuildHub is a trusted builder discovery platform that helps developers prove exe
 ## Architecture decisions
 
 - Frontend pages use in-memory seed data; verification feature uses real PostgreSQL
+- Clerk SignUp uses forceRedirectUrl=/onboarding so role picker shows immediately after account creation
+- Clerk SignIn uses forceRedirectUrl=/dashboard which routes returning users to their portal based on saved role
 - Wouter routing with base path from BASE_URL env var
 - ThemeContext lives in lib/theme.ts (NOT App.tsx) to avoid circular import with Navbar
 - Vite proxies /api/* → port 8080 in dev; same-origin in prod

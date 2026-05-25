@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk, useUser } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
-import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
+import { Switch, Route, useLocation, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { ThemeContext, type Theme } from "@/lib/theme";
 import { Navbar } from "@/components/layout/Navbar";
@@ -106,7 +106,12 @@ function SignInPage() {
       display: "flex", minHeight: "100dvh", alignItems: "center", justifyContent: "center",
       background: "var(--bg)", padding: 24,
     }}>
-      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+      <SignIn
+        routing="path"
+        path={`${basePath}/sign-in`}
+        signUpUrl={`${basePath}/sign-up`}
+        forceRedirectUrl={`${basePath}/dashboard`}
+      />
     </div>
   );
 }
@@ -117,22 +122,22 @@ function SignUpPage() {
       display: "flex", minHeight: "100dvh", alignItems: "center", justifyContent: "center",
       background: "var(--bg)", padding: 24,
     }}>
-      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+      <SignUp
+        routing="path"
+        path={`${basePath}/sign-up`}
+        signInUrl={`${basePath}/sign-in`}
+        forceRedirectUrl={`${basePath}/onboarding`}
+      />
     </div>
   );
 }
 
-// ── Home redirect ─────────────────────────────────────────────────────────────
-function HomeRedirect() {
-  return (
-    <>
-      <Show when="signed-in"><Redirect to="/dashboard" /></Show>
-      <Show when="signed-out"><Home /></Show>
-    </>
-  );
-}
-
 // ── Query client cache invalidation on auth change ────────────────────────────
+// Home is shown to everyone (signed-in or signed-out); signed-in users get a
+// "My Portal" link in the navbar to reach their dashboard.
+const HomeRedirect = Home;
+
+
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
   const qc = useQueryClient();

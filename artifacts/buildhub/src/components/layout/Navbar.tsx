@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Layers, ShieldCheck } from "lucide-react";
+import { Menu, X, Layers, ShieldCheck, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useTheme } from "../../lib/theme";
 import { useUser, useClerk, Show } from "@clerk/react";
@@ -123,6 +123,19 @@ export function Navbar() {
           {/* Show when signed in */}
           <Show when="signed-in">
             <Link
+              href="/dashboard"
+              className="hidden sm:inline-flex"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 13, fontWeight: 600,
+                color: location.startsWith("/portal") || location === "/dashboard" ? "var(--accent)" : "var(--text-muted)",
+                textDecoration: "none", padding: "6px 12px", borderRadius: 8,
+              }}
+            >
+              <LayoutDashboard style={{ width: 13, height: 13 }} />
+              My Portal
+            </Link>
+            <Link
               href="/verify"
               className="hidden sm:inline-flex"
               style={{
@@ -205,6 +218,18 @@ export function Navbar() {
             </Link>
           ))}
           <Show when="signed-in">
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileOpen(false)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "10px 12px", borderRadius: 9,
+                fontSize: 14, fontWeight: 600, color: "var(--accent)", textDecoration: "none",
+              }}
+            >
+              <LayoutDashboard style={{ width: 14, height: 14 }} />
+              My Portal
+            </Link>
             <Link
               href="/verify"
               onClick={() => setMobileOpen(false)}
