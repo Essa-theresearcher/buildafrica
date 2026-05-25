@@ -20,7 +20,7 @@ BuildHub is a trusted builder discovery platform that helps developers prove exe
 ## Where things live
 
 - `artifacts/buildhub/` — main web app (BuildHub MVP)
-- `artifacts/buildhub/src/data/seed.ts` — dummy seed data (6 Nairobi builders, 6 projects, 3 company requests)
+- `artifacts/buildhub/src/data/seed.ts` — seed data: 6 East African builders (Nairobi + Mogadishu), 6 projects (InventoryPro, HireMatch AI, SchoolFlow, CargoTrack, ClipCraft, Fundis Hub), 3 company requests
 - `artifacts/buildhub/src/types.ts` — TypeScript types
 - `artifacts/buildhub/src/pages/` — all 6 page components
 - `artifacts/buildhub/src/components/` — layout and shared components

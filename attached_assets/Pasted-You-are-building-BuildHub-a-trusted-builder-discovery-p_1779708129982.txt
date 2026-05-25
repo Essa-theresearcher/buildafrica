@@ -1,0 +1,166 @@
+You are building BuildHub — a trusted builder discovery platform for East Africa.
+
+CONTEXT: THE GAP YOU ARE FILLING
+==================================
+
+Right now in East Africa, three problems exist simultaneously:
+
+PROBLEM 1 — BUILDERS ARE INVISIBLE
+Developers in Nairobi, Mogadishu, Kampala, and Addis Ababa are shipping 
+real products every week. Fintech tools. School management systems. 
+Logistics dashboards. Inventory SaaS apps. They built them. They launched 
+them. They work. But nobody outside their WhatsApp group ever sees them. 
+There is no structured place to say "I built this, it works, here is proof."
+
+PROBLEM 2 — COMPANIES CANNOT FIND TRUSTED BUILDERS
+When a company in Nairobi or a startup in Mogadishu needs a reliable 
+developer, they have no trusted local discovery layer. They either:
+- Post on Upwork and get 200 random bids from around the world
+- Ask friends on WhatsApp and hire whoever responds first
+- Use Toptal or Arc.dev which cost $60-200/hour and are built for 
+  Silicon Valley budgets, not East African startups
+- Use LinkedIn which rewards connections and talking, not actual code
+
+PROBLEM 3 — THERE IS NO PROOF-OF-WORK LAYER
+Existing platforms reward:
+- How well you write your CV (LinkedIn)
+- How cheap you bid (Upwork, Fiverr)
+- How well you pass a 5-stage Western interview (Toptal)
+
+None of them answer the only question that actually matters:
+"Has this person shipped real working products and delivered reliably?"
+
+
+THE COMPETITORS AND EXACTLY WHY THEY FAIL EAST AFRICAN BUILDERS
+=================================================================
+
+UPWORK
+- Global race to the bottom on price
+- East African builders compete against developers from everywhere
+- No community trust, no verification of actual shipped products
+- Builders are anonymous bidders, not recognized professionals
+- Zero proof-of-work — a builder with 10 shipped products looks 
+  identical to someone who has never shipped anything
+- Companies get overwhelmed with bids, trust nobody
+- KEY FEATURE GAP: Upwork has zero concept of "shipped product portfolio"
+  It only shows ratings from past Upwork jobs — if you never used Upwork 
+  before, you are invisible with zero credibility even if you have built 
+  10 real products
+
+TOPTAL / ARC.DEV / LEMON.IO
+- Minimum $60-200/hour, built for US/European enterprise budgets
+- 5-stage vetting process takes weeks
+- Zero focus on East Africa, no cultural or community context
+- Builders must pass Western interview formats to even be listed
+- Companies must pay subscription fees just to search
+
+LINKEDIN
+- Rewards connections and self-promotion, not execution
+- No way to verify "I built this product and it works"
+- Full of people who say they are developers without shipped proof
+- East African builders with no network connections stay invisible
+- No structured way for companies to post "I need a builder" 
+  and get matched to verified local talent
+
+ANDELA / GEBEYA
+- Corporate, top-down, they choose who gets on the platform
+- Builders cannot self-list — they must be selected and trained
+- Built for placing talent at global corporations, not local startups
+- No community-native feel, no proof-of-work showcase
+- East African startup founder cannot use these to find a local builder
+
+GITHUB
+- Shows code, not products
+- Companies cannot browse "builders available for hire in Nairobi"
+- No collaboration history, no availability status, no trust signals
+- Not designed for discovery
+
+
+WHAT BUILDHUB IS
+================
+
+BuildHub is the trust layer that does not exist yet.
+
+It is NOT a job board.
+It is NOT a freelance bidding marketplace.
+It is NOT a social network.
+It is NOT a generic portfolio builder.
+
+It IS a verified builder discovery platform where:
+- Builders create profiles showing real shipped products with screenshots,
+  demo links, tech stack, and what they personally contributed
+- Every builder has a verification status (Verified Builder, Shipped 
+  Project, Reliable Collaborator, Available for Work, Coffee & Code Member)
+- Companies submit exactly what they need and get matched to 
+  verified builders who have proof they can deliver
+- An admin layer maintains trust by approving builders and 
+  adding reliability notes — this is the trust engine
+
+THE SINGLE MOST IMPORTANT FEATURE DIFFERENCE FROM UPWORK
+=========================================================
+
+On Upwork: a builder's credibility comes from Upwork job ratings.
+If you never used Upwork before = zero credibility, even if you 
+built 10 real shipped products.
+
+On BuildHub: a builder's credibility comes from SHIPPED PRODUCTS.
+A builder with zero clients but 5 live launched products with 
+screenshots, demo links, and tech stack is MORE credible than 
+someone with 50 Upwork jobs and no portfolio of real products.
+
+This is the core design principle. Every feature must reinforce this.
+Proof of execution beats proof of platform activity. Always.
+
+
+COMMUNITY CONTEXT
+=================
+
+BuildHub starts with the Coffee & Code community in Nairobi/Somalia.
+This is not a cold-start platform. It has a real community behind it.
+The first builders are people who already know each other, already 
+ship products, and already trust each other. The platform formalizes 
+and amplifies that existing trust — it does not try to manufacture it.
+
+
+WHAT YOU ARE BUILDING — V1 SCOPE
+=================================
+
+Pages:
+1. Landing page — explains the gap, calls builders and companies to action
+2. Builders Directory — browse verified builders by skill, location, availability
+3. Builder Profile — name, location, role, skills, shipped projects, 
+   collaboration history, availability, verification tags, contact button
+4. Project Showcase — project name, description, builder, tech stack, 
+   status (Idea/Building/Launched/Verified), demo link, what builder contributed
+5. Company Request Form — company posts what they need, budget, timeline, 
+   remote or local, contact email
+6. Admin Dashboard — approve builders, view company requests, 
+   match builders to companies, add reliability notes
+
+Tech stack:
+- React frontend
+- Tailwind CSS
+- Supabase for database and auth
+- Mobile responsive
+- Dark, minimal, serious, professional design
+- No loud gamification, no leaderboards, no fake social feed
+
+Reputation signals (simple tags only, no AI scoring yet):
+- Verified Builder
+- Shipped Project  
+- Reliable Collaborator
+- Available for Work
+- Coffee & Code Member
+
+Seed data: Nairobi/Somali builders and companies with real-feeling 
+dummy data — InventoryPro, HireMatch AI, SchoolFlow, CargoTrack, 
+ClipCraft as sample projects. Builders named Omar Issa, Amina Ali, 
+Ibrahim Hassan, Fadumo Noor, Yahye Mohamed.
+
+DESIGN PRINCIPLE FOR EVERY SCREEN
+===================================
+
+Every screen must answer one question for the person looking at it:
+"Can this person actually build and deliver reliably?"
+
+If a feature does not help answer that question, do not build it yet.
