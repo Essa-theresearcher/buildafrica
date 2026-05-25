@@ -1,7 +1,142 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { ArrowRight, ShieldCheck, Package, Users, ChevronRight, Zap, Globe } from "lucide-react";
+import { ArrowRight, ShieldCheck, Package, Users, ChevronRight, Zap, Globe, Trophy, ArrowUp, Eye } from "lucide-react";
 import { builders, projects, getBuildersByIds, getInitials } from "../data/seed";
 import { ReputationBadge } from "../components/builders/ReputationBadge";
+import { apiFetch } from "../lib/api";
+
+// ── Startups Section (live data) ──────────────────────────────────────────────
+const categoryColors: Record<string, string> = {
+  fintech: "#2563eb", edtech: "#16a34a", healthtech: "#dc2626",
+  logistics: "#ea580c", saas: "#7c3aed", agritech: "#059669",
+  ecommerce: "#ca8a04", developer_tools: "#4b5563", other: "#6b7280",
+};
+const stageLabels: Record<string, string> = { building: "Building", launched: "Launched", growing: "Growing" };
+
+interface HomeStartup {
+  id: string; name: string; slug: string; tagline: string; category: string;
+  stage: string; logo_url?: string; total_upvotes: number; total_views: number;
+  is_startup_of_week: boolean;
+}
+
+function StartupsSection() {
+  const [startups, setStartups] = useState<HomeStartup[]>([]);
+  const [sotw, setSotw] = useState<HomeStartup | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiFetch("/api/startups?sort=newest").then((d) => {
+      const all: HomeStartup[] = d.startups || [];
+      setSotw(all.find((s) => s.is_startup_of_week) || null);
+      setStartups(all.filter((s) => !s.is_startup_of_week).slice(0, 4));
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  if (loading || (startups.length === 0 && !sotw)) {
+    return (
+      <section>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 8 }}>
+          <div>
+            <div className="section-eyebrow" style={{ marginBottom: 8 }}>Startups</div>
+            <h2 style={{ fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 800, letterSpacing: "-0.025em", color: "var(--text)", margin: 0 }}>
+              East African startups building now
+            </h2>
+          </div>
+        </div>
+        <div className="card" style={{ padding: "clamp(28px, 5vw, 48px)", textAlign: "center" }}>
+          <p style={{ fontWeight: 700, fontSize: 17, color: "var(--text)", marginBottom: 10 }}>Are you building something?</p>
+          <p style={{ color: "var(--text-muted)", marginBottom: 20, fontSize: 14 }}>Showcase your startup to builders, companies, and early users across East Africa.</p>
+          <Link href="/startups/new" className="btn btn-primary" style={{ padding: "10px 24px", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Zap style={{ width: 14, height: 14 }} /> Add Your Startup
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section>
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 8 }}>
+        <div>
+          <div className="section-eyebrow" style={{ marginBottom: 8 }}>Startups</div>
+          <h2 style={{ fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 800, letterSpacing: "-0.025em", color: "var(--text)", margin: 0 }}>
+            East African startups building now
+          </h2>
+        </div>
+        <Link href="/startups" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 600, color: "var(--accent)", textDecoration: "none" }}>
+          View all startups <ChevronRight style={{ width: 15, height: 15 }} />
+        </Link>
+      </div>
+
+      {/* Startup of the Week */}
+      {sotw && (
+        <div style={{
+          borderRadius: 20, marginBottom: 20,
+          background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%)",
+          padding: "clamp(20px, 3.5vw, 32px)",
+          display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 20,
+        }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <Trophy style={{ width: 14, height: 14, color: "#fbbf24" }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "0.08em" }}>Startup of the Week</span>
+            </div>
+            {sotw.logo_url && <img src={sotw.logo_url} alt={sotw.name} style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", border: "2px solid rgba(255,255,255,0.2)", marginBottom: 10 }} />}
+            <h3 style={{ fontSize: "clamp(18px, 2.5vw, 24px)", fontWeight: 800, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.02em" }}>{sotw.name}</h3>
+            <p style={{ color: "rgba(255,255,255,0.78)", fontSize: 14, margin: "0 0 14px", lineHeight: 1.6 }}>{sotw.tagline}</p>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 99, background: "rgba(255,255,255,0.15)", color: "#fff" }}>
+                {stageLabels[sotw.stage] || sotw.stage}
+              </span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", gap: 4 }}>
+                <ArrowUp style={{ width: 11, height: 11 }} /> {sotw.total_upvotes}
+              </span>
+            </div>
+          </div>
+          <Link href={`/startups/${sotw.slug}`}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 12, background: "#fff", color: "#4f46e5", fontWeight: 700, fontSize: 14, textDecoration: "none", flexShrink: 0 }}>
+            Discover this startup <ArrowRight style={{ width: 14, height: 14 }} />
+          </Link>
+        </div>
+      )}
+
+      {/* Recent startups row */}
+      {startups.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 14 }}>
+          {startups.map((s) => {
+            const catColor = categoryColors[s.category] || "#6b7280";
+            return (
+              <Link key={s.id} href={`/startups/${s.slug}`}
+                style={{ textDecoration: "none" }}>
+                <div className="card" style={{ padding: 16, cursor: "pointer", transition: "border-color 200ms" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}>
+                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 10 }}>
+                    {s.logo_url
+                      ? <img src={s.logo_url} alt={s.name} style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+                      : <div style={{ width: 36, height: 36, borderRadius: 8, background: catColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: "#fff", flexShrink: 0 }}>{s.name[0]}</div>
+                    }
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</div>
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: "1px 7px", borderRadius: 99, background: catColor + "22", color: catColor }}>{s.category}</span>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 10px", lineHeight: 1.6, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                    {s.tagline}
+                  </p>
+                  <div style={{ display: "flex", gap: 10, fontSize: 11, color: "var(--text-muted)" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 3 }}><ArrowUp style={{ width: 10, height: 10 }} />{s.total_upvotes}</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 3 }}><Eye style={{ width: 10, height: 10 }} />{s.total_views}</span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
 
 const featuredProjects = projects.filter((p) => p.featured).slice(0, 3);
 const featuredBuilders = builders.filter((b) => b.verificationStatus === "Verified").slice(0, 4);
@@ -328,6 +463,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* ── Startups ──────────────────────────────────────────── */}
+      <StartupsSection />
 
       {/* ── Community context ────────────────────────────────── */}
       <section>

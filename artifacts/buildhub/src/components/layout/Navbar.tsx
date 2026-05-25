@@ -8,6 +8,7 @@ import { useUser, useClerk, Show } from "@clerk/react";
 const links = [
   { href: "/builders", label: "Builders" },
   { href: "/projects", label: "Projects" },
+  { href: "/startups", label: "Startups" },
   { href: "/request", label: "Hire a Builder" },
 ];
 

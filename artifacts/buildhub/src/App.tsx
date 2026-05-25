@@ -16,6 +16,11 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVerifications from "@/pages/AdminVerifications";
 import VerifyApply from "@/pages/VerifyApply";
 import VerifyStatus from "@/pages/VerifyStatus";
+import Startups from "@/pages/Startups";
+import StartupProfile from "@/pages/StartupProfile";
+import StartupNew from "@/pages/StartupNew";
+import StartupPromote from "@/pages/StartupPromote";
+import AdminMarketing from "@/pages/AdminMarketing";
 
 // ── Clerk config ──────────────────────────────────────────────────────────────
 // REQUIRED — copy verbatim per Replit Clerk skill
@@ -228,6 +233,11 @@ function ClerkProviderWithRoutes() {
                 <Route path="/admin/verifications" component={AdminVerifications} />
                 <Route path="/verify" component={VerifyApply} />
                 <Route path="/verify/status" component={VerifyStatus} />
+                <Route path="/startups/new" component={StartupNew} />
+                <Route path="/startups/:slug/promote" component={StartupPromote} />
+                <Route path="/startups/:slug" component={StartupProfile} />
+                <Route path="/startups" component={Startups} />
+                <Route path="/admin/marketing" component={AdminMarketing} />
                 <Route component={NotFound} />
               </Switch>
             </AppShell>

@@ -1,0 +1,841 @@
+You are adding a Startup Showcase and Paid Marketing 
+feature to BuildHub.
+
+BuildHub is a builder discovery platform.
+Startups are one type of builder on the platform.
+They are not a separate product.
+They live inside BuildHub under /startups
+
+There are two layers being built here:
+
+LAYER 1 — Free Showcase (every startup gets this)
+LAYER 2 — Paid Marketing (startups pay to get amplified)
+
+Do not build investor profiles yet.
+Do not build payment processing yet.
+Build the UI and logic for both layers.
+Mark paid features clearly in the UI.
+When a startup tries to activate a paid feature:
+Show a "Coming Soon — Join Waitlist" modal
+that captures their email into a waitlist table.
+This lets you validate demand before building payments.
+
+=======================================================
+UNDERSTAND THE BUSINESS MODEL FIRST
+=======================================================
+
+FREE TIER — What every startup gets at no cost:
+- A startup profile page
+- Listed in the startups directory
+- Ability to post building updates
+- Team member showcase
+- Basic contact button
+- Upvote button for community support
+
+PAID TIER — What startups pay for:
+- Homepage spotlight placement (7 days)
+- "Featured" badge and priority in directory
+- Startup of the Week (newsletter + social push)
+- Boosted visibility in search results
+- "Investor Ready" badge (future — V2)
+
+The paid tier is your first revenue stream.
+Build the UI for it completely.
+Replace the payment action with a waitlist capture.
+This proves demand before you build Stripe.
+
+=======================================================
+STEP 1 — DATABASE TABLES
+=======================================================
+
+TABLE: startups
+- id: uuid, primary key, default gen_random_uuid()
+- founder_id: uuid, foreign key → profiles.id
+- name: text, not null
+- slug: text, not null, unique
+- tagline: text, not null, max 100 characters
+- description: text, not null
+- problem_solved: text, not null
+- category: text, not null
+  allowed values: 'fintech', 'edtech', 
+  'healthtech', 'logistics', 'saas', 
+  'agritech', 'ecommerce', 
+  'developer_tools', 'other'
+- stage: text, not null, default 'building'
+  allowed values: 'building', 'launched', 'growing'
+- logo_url: text, nullable
+- cover_image_url: text, nullable
+- demo_url: text, nullable
+- product_url: text, nullable
+- github_url: text, nullable
+- looking_for: jsonb, nullable
+- traction_users: text, nullable
+  allowed values: 'pre-launch', '1-100',
+  '100-500', '500-1000', '1000-5000', '5000+'
+- traction_revenue: text, nullable
+  allowed values: 'pre-revenue', 'early-revenue',
+  'growing-revenue', 'prefer-not-to-say'
+- markets_served: text[], nullable
+- is_hiring: boolean, default false
+- is_verified: boolean, default false
+- is_active: boolean, default true
+
+-- FREE TIER FLAGS
+- is_listed: boolean, default true
+
+-- PAID TIER FLAGS  
+- is_featured: boolean, default false
+- featured_until: timestamptz, nullable
+- is_spotlight: boolean, default false
+- spotlight_until: timestamptz, nullable
+- is_startup_of_week: boolean, default false
+- startup_of_week_date: date, nullable
+- is_boosted: boolean, default false
+- boosted_until: timestamptz, nullable
+
+-- MARKETING METADATA
+- marketing_tier: text, default 'free'
+  allowed values: 'free', 'featured', 
+  'spotlight', 'premium'
+- total_upvotes: integer, default 0
+- total_views: integer, default 0
+- created_at: timestamptz, default now()
+- updated_at: timestamptz, default now()
+
+TABLE: startup_team_members
+- id: uuid, primary key, default gen_random_uuid()
+- startup_id: uuid, foreign key → startups.id
+- builder_id: uuid, foreign key → profiles.id
+- role: text, not null
+- is_founder: boolean, default false
+- joined_at: timestamptz, default now()
+
+TABLE: startup_updates
+- id: uuid, primary key, default gen_random_uuid()
+- startup_id: uuid, foreign key → startups.id
+- posted_by: uuid, foreign key → profiles.id
+- title: text, not null
+- body: text, not null
+- update_type: text, not null
+  allowed values: 'shipped', 'milestone',
+  'setback', 'looking_for', 'general'
+- created_at: timestamptz, default now()
+
+TABLE: startup_upvotes
+- id: uuid, primary key, default gen_random_uuid()
+- startup_id: uuid, foreign key → startups.id
+- user_id: uuid, foreign key → profiles.id
+- created_at: timestamptz, default now()
+- UNIQUE constraint on (startup_id, user_id)
+
+TABLE: startup_views
+- id: uuid, primary key, default gen_random_uuid()
+- startup_id: uuid, foreign key → startups.id
+- viewer_id: uuid, nullable (null if not logged in)
+- viewed_at: timestamptz, default now()
+
+TABLE: marketing_waitlist
+- id: uuid, primary key, default gen_random_uuid()
+- email: text, not null
+- startup_id: uuid, nullable, 
+  foreign key → startups.id
+- startup_name: text, nullable
+- package_interest: text, not null
+  allowed values: 'featured', 'spotlight',
+  'startup_of_week', 'premium'
+- message: text, nullable
+- created_at: timestamptz, default now()
+
+TABLE: marketing_packages
+- id: uuid, primary key, default gen_random_uuid()
+- name: text, not null
+- slug: text, not null, unique
+- tagline: text, not null
+- description: text, not null
+- features: jsonb, not null
+- price_usd: integer, not null
+- duration_days: integer, not null
+- is_active: boolean, default true
+- sort_order: integer, default 0
+
+RLS POLICIES:
+- startups readable by everyone
+- founders can insert and update own startup
+- startup_updates readable by everyone
+- only founder can insert updates for own startup
+- startup_upvotes: one per user per startup
+- startup_views: anyone can insert
+- marketing_waitlist: anyone can insert
+- marketing_packages: readable by everyone
+- admin can update all tables
+
+=======================================================
+STEP 2 — SEED THE MARKETING PACKAGES TABLE
+=======================================================
+
+INSERT these exact packages:
+
+PACKAGE 1:
+name: 'Featured Listing'
+slug: 'featured'
+tagline: 'Stand out in the directory'
+description: 'Your startup appears at the top of 
+the BuildHub startups directory with a Featured 
+badge for 7 days. Builders and visitors browsing 
+for products to use will see you first.'
+features: [
+  "Featured badge on your startup card",
+  "Priority placement in directory for 7 days",
+  "Highlighted border on your startup card",
+  "Appears in Featured filter tab",
+  "7 days duration"
+]
+price_usd: 29
+duration_days: 7
+
+PACKAGE 2:
+name: 'Homepage Spotlight'
+slug: 'spotlight'
+tagline: 'Own the BuildHub homepage for a week'
+description: 'Your startup is featured in the 
+Startup Spotlight section on the BuildHub homepage. 
+Every builder, company, and visitor who lands on 
+BuildHub sees your startup front and center.'
+features: [
+  "Spotlight card on BuildHub homepage",
+  "Featured in the weekly BuildHub digest email",
+  "Spotlight badge on your profile",
+  "Shared on BuildHub social media accounts",
+  "Priority in directory for full duration",
+  "7 days duration"
+]
+price_usd: 79
+duration_days: 7
+
+PACKAGE 3:
+name: 'Startup of the Week'
+slug: 'startup_of_week'
+tagline: 'The highest visibility on BuildHub'
+description: 'Your startup is selected as Startup 
+of the Week. You get a dedicated feature across 
+homepage, email newsletter, and all BuildHub 
+social channels. The community rallies around you.'
+features: [
+  "Startup of the Week badge and homepage hero",
+  "Dedicated email to entire BuildHub community",
+  "Feature post on all social media channels",
+  "Interview-style profile written by BuildHub team",
+  "Pinned at top of directory for full week",
+  "Permanent 'Was Startup of the Week' badge",
+  "7 days duration"
+]
+price_usd: 149
+duration_days: 7
+
+=======================================================
+STEP 3 — THE STARTUPS DIRECTORY PAGE
+=======================================================
+
+Route: /startups
+
+This page is the main discovery page for startups.
+It lives inside BuildHub navigation as "Startups" tab.
+
+PAGE HEADER:
+- Heading: "Startups Building in East Africa"
+- Subheading: "Discover real products built 
+  by African founders. Use them. Support them. 
+  Hire their builders."
+- Stats bar showing live counts:
+  "[X] Startups" | "[X] Builders" | "[X] Products Launched"
+  Fetch these counts from the database in real time
+
+FILTER AND SORT BAR:
+Filter by stage (tabs):
+All | Building | Launched | Growing
+
+Filter by category (horizontal scroll on mobile):
+All | Fintech | EdTech | HealthTech | 
+Logistics | SaaS | AgriTech | Dev Tools | Other
+
+Sort (dropdown):
+Newest | Most Upvoted | Most Viewed | 
+Recently Updated | Hiring Now
+
+Search input:
+Placeholder: "Search startups by name or problem..."
+Filter results in real time as user types
+Search against name, tagline, description columns
+
+STARTUP OF THE WEEK SECTION:
+Check if any startup has is_startup_of_week = true
+and startup_of_week_date = current week
+
+If yes: render a full-width hero card:
+- Deep purple background with subtle noise texture
+- "⚡ Startup of the Week" label top left
+- Startup logo large
+- Name as h2
+- Tagline
+- Stage badge
+- Traction badge if stage is launched or growing
+- Upvote count
+- Team member avatars
+- "View Startup" button linking to profile
+- "Support on WhatsApp" button 
+  (opens whatsapp share with startup link)
+
+FEATURED STARTUPS ROW:
+Below the Startup of the Week section
+Show a horizontal scrollable row of startups where:
+is_featured = true AND featured_until > now()
+Label: "✨ Featured This Week"
+
+Each featured card:
+- Purple border
+- Featured badge top right
+- Logo, name, tagline
+- Category and stage badges
+- Upvote button with count
+- Click to go to startup profile
+
+If no featured startups: hide this section entirely
+Do not show an empty row
+
+MAIN STARTUP GRID:
+Show all active non-featured startups
+Ordered by sort selection
+2 columns desktop, 1 column mobile
+
+Each startup card shows:
+- Logo or generated initial avatar
+  If no logo: generate a colored square with 
+  the startup's first letter in white
+  Color based on category:
+  fintech = blue, edtech = green, 
+  healthtech = red, logistics = orange,
+  saas = purple, agritech = emerald,
+  ecommerce = yellow, devtools = gray
+- Startup name
+- Tagline (truncate at 80 characters)
+- Category badge
+- Stage badge
+- If is_hiring: amber "Hiring" badge
+- Team member avatars max 3 then +N more
+- Upvote button:
+  Show current count
+  On click if logged in: toggle upvote
+  On click if not logged in: 
+  show tooltip "Sign in to upvote"
+  Update count immediately optimistically
+- View count: eye icon + number
+- Time since last update or "No updates yet"
+- Click card: go to /startups/[slug]
+
+EMPTY STATE:
+When filters return no results:
+Show centered message:
+"No startups found for these filters."
+"Be the first to launch in this category."
+Button: "Clear filters"
+Button: "Add your startup"
+
+=======================================================
+STEP 4 — THE STARTUP PROFILE PAGE
+=======================================================
+
+Route: /startups/[slug]
+
+On page load:
+INSERT a row into startup_views
+(record the view whether logged in or not)
+UPDATE startups set total_views = total_views + 1
+
+If startup is_active is false:
+Show 404 page
+
+STARTUP OF THE WEEK BANNER:
+If is_startup_of_week is true:
+Show full-width banner at very top:
+"⚡ BuildHub Startup of the Week"
+Purple background, white text, trophy icon
+
+SPOTLIGHT BANNER:
+If is_spotlight is true and spotlight_until > now():
+Show banner below header:
+"✨ Featured in BuildHub Spotlight this week"
+
+PAGE LAYOUT:
+
+TOP SECTION — Hero:
+- Cover image full width 240px height
+  If no cover image: gradient background 
+  using category color
+- Logo overlapping cover image bottom left
+  64px by 64px rounded
+- Startup name h1
+- Tagline
+- Row of badges:
+  Category | Stage | Verified (if true) | 
+  Hiring (if true) | Featured (if true)
+- Stats row:
+  👁 [total_views] views | 
+  ▲ [total_upvotes] upvotes |
+  📅 Launched [created_at formatted as month year]
+- Action buttons row:
+  Upvote button (filled if user has upvoted)
+  Visit Product button (if product_url exists)
+  View Demo button (if demo_url exists)
+  Contact Founder button
+
+CONTACT FOUNDER MODAL:
+On "Contact Founder" click:
+Fetch founder profile
+Show modal with:
+- Founder avatar, name, role
+- If whatsapp exists: 
+  "Chat on WhatsApp" button
+  opens: https://wa.me/[number]?text=Hi, 
+  I found your startup [name] on BuildHub
+- If email exists:
+  "Send Email" button
+  opens mailto with subject pre-filled:
+  "Re: [startup name] on BuildHub"
+- Link to founder's builder profile:
+  "View Builder Profile"
+
+MAIN CONTENT — Two column layout:
+Left column 1/3, Right column 2/3
+
+LEFT COLUMN:
+
+About card:
+- "The Problem" section: problem_solved text
+- "The Product" section: description text
+- "Markets" section: markets_served as tags
+- "Built with" section: 
+  aggregate skills from all team members
+  show as tech tags
+
+Looking For card:
+Only show if looking_for array is not empty:
+Heading: "We are looking for"
+Each item as a colored tag:
+co-founder = purple
+engineer = blue
+designer = pink
+first-users = green
+feedback = gray
+investment = amber
+
+Team card:
+Heading: "The Builders"
+For each team member:
+- Avatar
+- Name linking to /builders/[username]
+- Role text
+- If builder has verified_builder badge:
+  Show small verified checkmark
+- If is_founder: show "Founder" label
+
+Add Team Member button:
+Only visible to startup founder
+(same modal as defined in previous prompt)
+
+Traction card:
+Only show if stage is 'launched' or 'growing'
+- Users: traction_users value as human text
+  'pre-launch' = "Pre-launch"
+  '1-100' = "Early users (1–100)"
+  '100-500' = "Growing (100–500 users)"
+  '500-1000' = "Scaling (500–1000 users)"
+  '1000-5000' = "Strong traction (1K–5K users)"
+  '5000+' = "Significant scale (5K+ users)"
+- Revenue: traction_revenue as human text
+
+RIGHT COLUMN:
+
+Tabs: Updates | About | Jobs
+
+UPDATES TAB (default active):
+Post Update button — only visible to founder
+On click: inline form slides down
+
+Form fields:
+- Update type: select with icons
+- Title: text input
+- Body: textarea min 50 characters max 1000
+- Submit button
+
+On submit:
+INSERT into startup_updates
+UPDATE startups set updated_at = now()
+Show new update at top instantly
+Collapse form
+
+Each update card:
+- Icon based on type:
+  shipped = 🚀 green
+  milestone = 🏆 amber
+  setback = 🔧 gray
+  looking_for = 🔍 blue
+  general = 📢 purple
+- Title as h4
+- Body text
+- Posted by avatar and name
+- Time ago formatted: 
+  "3 days ago" not a raw timestamp
+
+Empty state when no updates:
+If founder viewing: 
+"Post your first update to show 
+ the community what you are building."
+Button: "Post Update"
+If visitor viewing:
+"This startup hasn't posted updates yet."
+
+JOBS TAB:
+Pull from company_requests table where 
+contact_email matches founder email
+Show as job cards:
+- Role title
+- Skills as tags
+- Remote/local badge
+- Budget range
+- "Contact to Apply" button
+
+Empty state:
+If founder viewing:
+"Post a role to find verified builders."
+Button: "Post a Role" → /company-request
+
+=======================================================
+STEP 5 — ADD YOUR STARTUP PAGE
+=======================================================
+
+Route: /startups/new
+Protected: logged in users only
+
+If user already has a startup:
+Do not show the form
+Show their existing startup profile link
+with button: "Edit your startup"
+
+PROGRESS BAR at top:
+3 steps shown as connected dots
+Step 1: Basics
+Step 2: Story
+Step 3: Team and Media
+
+STEP 1 — BASICS:
+Fields:
+- Startup name
+  On change: auto-generate slug
+  Slug preview: "buildhub.com/startups/your-slug"
+  Check slug uniqueness against database on blur
+  If taken: show "This name is taken. Try another."
+- Tagline: 100 char max, live counter
+- Category: styled select with icons per category
+- Stage: three radio cards with descriptions
+  Building: "I am building. Not launched yet."
+  Launched: "Live product. Early users."
+  Growing: "Real traction. Paying users or 
+  significant free user base."
+Next button: validate all fields before proceeding
+
+STEP 2 — STORY:
+Fields:
+- Problem solved
+  Placeholder: "What specific problem do you 
+  solve? Who in East Africa has this problem? 
+  How are they dealing with it today?"
+  Min 100 characters
+- Description
+  Placeholder: "Describe your product. 
+  What does it do? How does it work?"
+  Min 100 characters
+- Demo URL: optional, validate https://
+- Product URL: optional, validate https://
+- GitHub URL: optional
+- Looking for: multi-select checkbox grid
+  Show 6 options in 2 column grid
+- If stage is launched or growing:
+  Show traction section:
+  Traction users: select
+  Traction revenue: select
+  Markets served: tag input
+  Press enter or comma to add a tag
+  X button to remove each tag
+
+Next button: validate required fields
+
+STEP 3 — TEAM AND MEDIA:
+Fields:
+- Logo upload
+  Show upload zone: drag and drop or click
+  Preview uploaded image immediately
+  Upload to Supabase storage on select
+  Store URL but do not save to DB yet
+  (save happens on final submit)
+- Cover image upload
+  Same pattern as logo
+- Is hiring toggle
+  If on: show message
+  "Add roles after creating your profile 
+   via the Company Request form"
+
+Submit button: "Launch My Startup on BuildHub"
+
+On submit:
+Validate all required fields across all steps
+INSERT into startups
+INSERT into startup_team_members 
+(founder as first team member)
+Redirect to /startups/[new-slug]
+Show success toast: 
+"Your startup is live on BuildHub 🚀"
+
+=======================================================
+STEP 6 — PAID MARKETING PAGES
+=======================================================
+
+Route: /startups/[slug]/promote
+
+Only accessible to startup founder.
+Show from the startup profile page:
+A button visible only to the founder:
+"Promote Your Startup"
+Subtle placement — below the edit button
+Not visible to other visitors
+
+PAGE LAYOUT:
+
+HEADER:
+Heading: "Get More Eyes on [Startup Name]"
+Subheading: "Reach builders, companies, and 
+early users who are already looking for 
+products like yours."
+
+CURRENT STATUS CARD:
+Show the startup's current marketing status:
+- Current tier: Free / Featured / Spotlight / Premium
+- If on a paid tier: show expiry date
+- Total views this week
+- Total upvotes
+
+THREE PACKAGE CARDS:
+Fetch from marketing_packages table
+Display in a row, 3 cards
+
+Each package card:
+- Package name as heading
+- Price in USD prominent: "$29" large font
+- "per week" in smaller text below price
+- Tagline
+- Feature list with checkmark icons
+- Primary CTA button: "Get [Package Name]"
+
+Highlight the middle package (Spotlight):
+- Purple border
+- "Most Popular" badge top right
+- Slightly larger card
+
+On any CTA button click:
+Do NOT redirect to payment yet
+Open the WAITLIST MODAL
+
+WAITLIST MODAL:
+Heading: "You are early — and that is a good thing."
+Body: "Paid marketing is launching soon on BuildHub. 
+Join the waitlist and you will be the first 
+to activate this when it goes live. 
+Early waitlist members get their first week free."
+
+Form:
+- Email input pre-filled with founder's email
+- Optional message: 
+  "Anything you want us to know?"
+  Placeholder: "Which package interests you most? 
+  What would make this valuable for your startup?"
+- Submit button: "Join the Waitlist"
+
+On submit:
+INSERT into marketing_waitlist:
+email, startup_id, startup_name, 
+package_interest = clicked package slug,
+message = optional message text
+
+Show success state inside modal:
+Replace form with:
+Checkmark icon
+"You are on the list."
+"We will email you at [email] when 
+paid marketing goes live."
+"Your first week is on us."
+Close button
+
+=======================================================
+STEP 7 — ADMIN MARKETING MANAGEMENT PAGE
+=======================================================
+
+Route: /admin/marketing
+
+SECTION 1 — Waitlist:
+Table of all marketing_waitlist entries
+Columns: email, startup name, package interest, 
+date joined, message
+Export button: download as CSV
+Total count: "[X] startups waiting"
+
+SECTION 2 — Active Promotions:
+Show all startups where:
+is_featured OR is_spotlight OR is_startup_of_week
+For each: show name, tier, expiry date
+Button per row: "Remove Promotion"
+On click: reset all paid flags to false
+Set marketing_tier back to 'free'
+
+SECTION 3 — Set Startup of the Week:
+Search input for startup name
+Results list
+On select: show confirmation
+"Set [name] as Startup of the Week 
+starting [today's date]?"
+On confirm:
+First: set any current startup_of_week to false
+Then: UPDATE selected startup:
+is_startup_of_week = true
+startup_of_week_date = today
+is_featured = true (gets directory boost too)
+featured_until = today + 7 days
+marketing_tier = 'spotlight'
+
+SECTION 4 — Manual Feature a Startup:
+For founders who paid outside the platform
+(bank transfer, mobile money) in early days
+
+Search input for startup name
+Date range picker for featured_until
+Package select: featured / spotlight / premium
+Activate button
+
+On activate:
+UPDATE startup with correct flags
+Set marketing_tier to selected package
+Show success: "Startup promoted manually"
+
+=======================================================
+STEP 8 — HOMEPAGE INTEGRATION
+=======================================================
+
+On the BuildHub homepage add a 
+"Startups" section below Featured Projects.
+
+This section has two parts:
+
+PART 1 — Startup of the Week card:
+If a startup has is_startup_of_week = true:
+Show a large card with purple gradient background:
+"⚡ Startup of the Week"
+Logo, name, tagline, stage, upvotes
+"Discover this startup" button
+
+PART 2 — Recent startups row:
+Fetch 4 most recently created startups
+where is_active = true
+Show as compact cards in a horizontal row
+"View all startups" link at the end
+
+If no startups exist yet:
+Show a card:
+"Are you building something?
+ Showcase your startup on BuildHub."
+Button: "Add Your Startup"
+
+=======================================================
+STEP 9 — NAVIGATION
+=======================================================
+
+Add "Startups" to the main BuildHub navigation.
+Position it between "Projects" and "Builders".
+
+In the sidebar or top nav:
+- Startups link → /startups
+- If user has a startup: 
+  show their startup name as a sub-item
+  linking to their startup profile
+
+=======================================================
+DESIGN RULES
+=======================================================
+
+Free tier startup cards:
+- Border: #222222
+- No special badge
+
+Featured startup cards:
+- Border: #7c3aed purple
+- "Featured" badge: purple pill top right
+
+Startup of the Week:
+- Card: animated gradient border
+  purple #7c3aed to blue #2563eb
+  animation: rotate 4s linear infinite
+- Trophy icon next to name
+- "Startup of the Week" amber label
+
+Stage badge colors:
+building = #6b7280 gray "Building"
+launched = #2563eb blue "Launched"
+growing = #16a34a green "Growing"
+
+Traction badge colors:
+pre-launch = gray
+1-100 = light blue
+100-500 = blue
+500-1000 = purple
+1000-5000 = green
+5000+ = amber "Scaling"
+
+All paid feature UI elements:
+Use a subtle lightning bolt ⚡ icon
+to indicate this is a premium feature
+Color: #d97706 amber
+
+Waitlist button states:
+Default: "Get [Package]" — purple button
+After joining waitlist: 
+"On the waitlist ✓" — gray disabled button
+This persists using localStorage keyed 
+by startup_id and package_slug
+
+All loading states: skeleton loaders
+All empty states: specific message + action
+All forms: inline field validation
+
+=======================================================
+DO NOT BUILD IN V1
+=======================================================
+
+Do not build:
+- Stripe or any payment processing
+- Investor profiles or investor dashboard
+- Startup rankings or scoring
+- Automated social media posting
+- Email newsletter sending
+- Analytics dashboard for founders
+- Startup to startup messaging
+
+Build the UI and database for everything above.
+Replace all payment actions with waitlist capture.
+Replace all automated actions with admin manual controls.
+
+The goal of V1 is:
+1. Get real startups on the platform
+2. Show them the marketing options
+3. Capture demand via the waitlist
+4. Manually fulfill the first 10 promotions
+5. Use that revenue and feedback to 
+   build proper payments in V2
+
+=======================================================
