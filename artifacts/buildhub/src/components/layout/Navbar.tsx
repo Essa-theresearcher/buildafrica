@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu, X, Layers } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
+import { useTheme } from "../../App";
 
 const links = [
   { href: "/builders", label: "Builders" },
@@ -11,62 +13,159 @@ const links = [
 export function Navbar() {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { theme, toggle } = useTheme();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border-color)] bg-[var(--bg)]/90 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 font-bold text-[var(--text)] no-underline"
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-bg">
-            <Layers className="h-4 w-4 text-white" />
+    <header
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        borderBottom: "1px solid var(--border)",
+        background: theme === "dark"
+          ? "rgba(8, 9, 15, 0.82)"
+          : "rgba(245, 244, 255, 0.85)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1200,
+          margin: "0 auto",
+          padding: "0 24px",
+          height: 64,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+        }}
+      >
+        {/* Logo */}
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <div
+            className="gradient-bg"
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Layers style={{ width: 17, height: 17, color: "#fff" }} />
           </div>
-          <span>
+          <span style={{ fontWeight: 700, fontSize: 17, color: "var(--text)", letterSpacing: "-0.02em" }}>
             Build<span className="gradient-text">Hub</span>
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={`rounded-lg px-4 py-2 text-sm font-medium no-underline transition-colors ${
-                location === l.href
-                  ? "bg-[var(--surface-elevated)] text-[var(--text)]"
-                  : "text-[var(--text-muted)] hover:text-[var(--text)]"
-              }`}
-            >
-              {l.label}
-            </Link>
-          ))}
+        {/* Desktop Nav */}
+        <nav style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, paddingLeft: 24 }}
+          className="hidden md:flex"
+        >
+          {links.map((l) => {
+            const active = location === l.href;
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 9,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  textDecoration: "none",
+                  color: active ? "var(--accent)" : "var(--text-muted)",
+                  background: active ? "var(--accent-subtle)" : "transparent",
+                  transition: "all 160ms ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.color = "var(--text)";
+                    e.currentTarget.style.background = "var(--surface-elevated)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.color = "var(--text-muted)";
+                    e.currentTarget.style.background = "transparent";
+                  }
+                }}
+              >
+                {l.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <Link href="/admin" className="btn-ghost hidden text-xs sm:inline-flex">
+        {/* Right */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <ThemeToggle theme={theme} onToggle={toggle} />
+          <Link
+            href="/admin"
+            className="hidden sm:inline-flex"
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: "var(--text-muted)",
+              textDecoration: "none",
+              padding: "6px 12px",
+              borderRadius: 8,
+            }}
+          >
             Admin
           </Link>
-          <Link href="/builders" className="btn-primary text-sm">
+          <Link href="/builders" className="btn btn-primary" style={{ padding: "8px 18px", fontSize: 13 }}>
             Join as Builder
           </Link>
           <button
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--surface-elevated)] hover:text-[var(--text)] md:hidden"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 36,
+              height: 36,
+              borderRadius: 9,
+              border: "1px solid var(--border)",
+              background: "transparent",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+            }}
             onClick={() => setMobileOpen(!mobileOpen)}
+            className="md:hidden"
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? <X style={{ width: 18, height: 18 }} /> : <Menu style={{ width: 18, height: 18 }} />}
           </button>
         </div>
       </div>
 
+      {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-[var(--border-color)] bg-[var(--bg)] px-4 pb-4 pt-2 md:hidden">
+        <div
+          style={{
+            borderTop: "1px solid var(--border)",
+            background: "var(--surface)",
+            padding: "12px 16px 20px",
+          }}
+          className="md:hidden"
+        >
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               onClick={() => setMobileOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm text-[var(--text-muted)] no-underline hover:text-[var(--text)]"
+              style={{
+                display: "block",
+                padding: "10px 12px",
+                borderRadius: 9,
+                fontSize: 14,
+                fontWeight: 500,
+                color: location === l.href ? "var(--accent)" : "var(--text-muted)",
+                textDecoration: "none",
+              }}
             >
               {l.label}
             </Link>
@@ -74,7 +173,15 @@ export function Navbar() {
           <Link
             href="/admin"
             onClick={() => setMobileOpen(false)}
-            className="block rounded-lg px-3 py-2.5 text-sm text-[var(--text-muted)] no-underline hover:text-[var(--text)]"
+            style={{
+              display: "block",
+              padding: "10px 12px",
+              borderRadius: 9,
+              fontSize: 14,
+              fontWeight: 500,
+              color: "var(--text-muted)",
+              textDecoration: "none",
+            }}
           >
             Admin
           </Link>

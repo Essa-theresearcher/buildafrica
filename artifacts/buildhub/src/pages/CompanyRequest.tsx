@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import { CheckCircle, ArrowRight, X } from "lucide-react";
 
-const budgetOptions = [
+const budgets = [
   "Under $1,000/month",
   "$1,000–$2,500/month",
   "$2,500–$5,000/month",
@@ -10,47 +10,38 @@ const budgetOptions = [
   "Project-based (fixed fee)",
 ];
 
-const timelineOptions = [
-  "Immediately",
-  "Within 2 weeks",
-  "Within 1 month",
-  "1–3 months",
-  "Flexible",
-];
+const timelines = ["Immediately", "Within 2 weeks", "Within 1 month", "1–3 months", "Flexible"];
 
 const skillSuggestions = [
-  "React", "Node.js", "Python", "TypeScript", "PostgreSQL", "React Native",
-  "Django", "FastAPI", "Figma", "AWS", "Docker", "M-Pesa Integration",
-  "Firebase", "Supabase", "Next.js", "Flutter", "GraphQL",
+  "React", "Node.js", "Python", "TypeScript", "PostgreSQL",
+  "React Native", "Django", "FastAPI", "Figma", "AWS",
+  "Docker", "M-Pesa", "Firebase", "Supabase", "Next.js",
+  "Flutter", "GraphQL", "Tailwind CSS",
 ];
+
+const steps = ["Company", "Role", "Logistics"];
 
 export default function CompanyRequest() {
   const [submitted, setSubmitted] = useState(false);
+  const [step, setStep] = useState(0);
   const [skillInput, setSkillInput] = useState("");
   const [form, setForm] = useState({
     companyName: "",
+    contactEmail: "",
     roleNeeded: "",
     skillsRequired: [] as string[],
     budgetRange: "",
     remote: true,
     location: "",
     timeline: "",
-    contactEmail: "",
   });
 
-  const addSkill = (skill: string) => {
-    const s = skill.trim();
-    if (s && !form.skillsRequired.includes(s)) {
-      setForm((f) => ({ ...f, skillsRequired: [...f.skillsRequired, s] }));
+  const addSkill = (s: string) => {
+    const trimmed = s.trim();
+    if (trimmed && !form.skillsRequired.includes(trimmed)) {
+      setForm((f) => ({ ...f, skillsRequired: [...f.skillsRequired, trimmed] }));
     }
     setSkillInput("");
-  };
-
-  const removeSkill = (skill: string) => {
-    setForm((f) => ({
-      ...f,
-      skillsRequired: f.skillsRequired.filter((s) => s !== skill),
-    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,45 +51,110 @@ export default function CompanyRequest() {
 
   if (submitted) {
     return (
-      <div className="mx-auto max-w-xl py-20 text-center">
-        <div className="mb-6 flex justify-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--success)]/10">
-            <CheckCircle className="h-10 w-10 text-[var(--success)]" />
-          </div>
-        </div>
-        <h1 className="text-2xl font-bold text-[var(--text)]">Request Submitted</h1>
-        <p className="mt-3 text-[var(--text-muted)]">
-          Thank you, <strong className="text-[var(--text)]">{form.companyName}</strong>. We've received your request and will match you with verified builders within 2–3 business days.
-        </p>
-        <p className="mt-2 text-sm text-[var(--text-muted)]">
-          We'll reach out to <strong className="text-[var(--text)]">{form.contactEmail}</strong> with matched profiles.
-        </p>
-        <button
-          onClick={() => setSubmitted(false)}
-          className="btn-outline mx-auto mt-8 inline-flex"
+      <div style={{ maxWidth: 480, margin: "80px auto", textAlign: "center", padding: "0 16px" }}>
+        <div
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: "50%",
+            background: "var(--success-bg)",
+            border: "1px solid var(--success-border)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 24px",
+          }}
         >
+          <CheckCircle style={{ width: 32, height: 32, color: "var(--success)" }} />
+        </div>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.03em", margin: "0 0 12px" }}>
+          Request Submitted
+        </h1>
+        <p style={{ fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7, margin: 0 }}>
+          Thanks, <strong style={{ color: "var(--text)" }}>{form.companyName}</strong>. We'll match you with the best verified builders and reach out to <strong style={{ color: "var(--text)" }}>{form.contactEmail}</strong> within 2–3 business days.
+        </p>
+        <button className="btn btn-outline" style={{ marginTop: 32 }} onClick={() => { setSubmitted(false); setStep(0); }}>
           Submit Another Request
         </button>
       </div>
     );
   }
 
+  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div className="card" style={{ padding: 28, marginBottom: 20 }}>
+      <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-muted)", margin: "0 0 20px" }}>
+        {title}
+      </h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {children}
+      </div>
+    </div>
+  );
+
+  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div>
+      <label className="label">{label}</label>
+      {children}
+    </div>
+  );
+
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[var(--text)]">Hire a Builder</h1>
-        <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-          Tell us what you need. We'll match you with the right verified builder from our community — people who've actually shipped the kind of product you're building.
+    <div style={{ maxWidth: 640, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 36 }}>
+        <div className="section-eyebrow" style={{ marginBottom: 8 }}>Companies</div>
+        <h1 style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--text)", margin: "0 0 10px" }}>
+          Hire a Builder
+        </h1>
+        <p style={{ fontSize: 15, color: "var(--text-muted)", lineHeight: 1.65, maxWidth: 460 }}>
+          Tell us what you need. We'll hand-match you with a verified builder who has shipped exactly this kind of product.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Company Info */}
-        <div className="card p-6">
-          <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-[var(--text-muted)]">Company Info</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="label">Company Name *</label>
+      {/* Progress */}
+      <div
+        className="card"
+        style={{ padding: "16px 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 0 }}
+      >
+        {steps.map((s, i) => (
+          <div key={s} style={{ display: "flex", alignItems: "center", flex: i < steps.length - 1 ? 1 : "none" }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              opacity: i > step ? 0.4 : 1,
+            }}>
+              <div style={{
+                width: 26,
+                height: 26,
+                borderRadius: "50%",
+                background: i <= step ? "var(--gradient)" : "var(--surface-elevated)",
+                color: i <= step ? "#fff" : "var(--text-muted)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                fontWeight: 700,
+                flexShrink: 0,
+              }}>
+                {i + 1}
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 600, color: i <= step ? "var(--text)" : "var(--text-muted)", whiteSpace: "nowrap" }}>
+                {s}
+              </span>
+            </div>
+            {i < steps.length - 1 && (
+              <div style={{ flex: 1, height: 1, background: i < step ? "var(--accent-subtle-md)" : "var(--border)", margin: "0 12px" }} />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        {/* Step 0: Company */}
+        {step === 0 && (
+          <Section title="Company Info">
+            <Field label="Company Name *">
               <input
                 type="text"
                 required
@@ -107,9 +163,8 @@ export default function CompanyRequest() {
                 onChange={(e) => setForm({ ...form, companyName: e.target.value })}
                 className="input"
               />
-            </div>
-            <div>
-              <label className="label">Contact Email *</label>
+            </Field>
+            <Field label="Contact Email *">
               <input
                 type="email"
                 required
@@ -118,16 +173,25 @@ export default function CompanyRequest() {
                 onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
                 className="input"
               />
-            </div>
-          </div>
-        </div>
+            </Field>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ alignSelf: "flex-start" }}
+              onClick={() => {
+                if (form.companyName && form.contactEmail) setStep(1);
+              }}
+            >
+              Next: Role Details
+              <ArrowRight style={{ width: 15, height: 15 }} />
+            </button>
+          </Section>
+        )}
 
-        {/* Role Details */}
-        <div className="card p-6">
-          <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-[var(--text-muted)]">Role Details</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="label">Role Needed *</label>
+        {/* Step 1: Role */}
+        {step === 1 && (
+          <Section title="Role Details">
+            <Field label="Role Needed *">
               <input
                 type="text"
                 required
@@ -136,86 +200,95 @@ export default function CompanyRequest() {
                 onChange={(e) => setForm({ ...form, roleNeeded: e.target.value })}
                 className="input"
               />
-            </div>
-            <div>
-              <label className="label">Skills Required</label>
-              <div className="mb-2 flex flex-wrap gap-2">
-                {form.skillsRequired.map((skill) => (
-                  <span
-                    key={skill}
-                    className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)]/10 px-3 py-1 text-sm text-[var(--accent)]"
-                  >
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => removeSkill(skill)}
-                      className="ml-1 text-[var(--accent)] opacity-60 hover:opacity-100"
+            </Field>
+            <Field label="Skills Required">
+              {/* Selected skills */}
+              {form.skillsRequired.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+                  {form.skillsRequired.map((s) => (
+                    <span
+                      key={s}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        padding: "4px 10px",
+                        borderRadius: 9,
+                        background: "var(--accent-subtle)",
+                        color: "var(--accent)",
+                        fontSize: 13,
+                        fontWeight: 500,
+                        border: "1px solid var(--accent-subtle-md)",
+                      }}
                     >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <div className="flex gap-2">
+                      {s}
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, skillsRequired: f.skillsRequired.filter((x) => x !== s) }))}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--accent)", display: "flex", padding: 0 }}
+                      >
+                        <X style={{ width: 12, height: 12 }} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 8 }}>
                 <input
                   type="text"
-                  placeholder="Add a skill and press Enter"
+                  placeholder="Type a skill and press Enter"
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addSkill(skillInput);
-                    }
-                  }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(skillInput); } }}
                   className="input"
+                  style={{ flex: 1 }}
                 />
-                <button
-                  type="button"
-                  onClick={() => addSkill(skillInput)}
-                  className="btn-outline flex-shrink-0 px-4"
-                >
-                  Add
-                </button>
+                <button type="button" className="btn btn-outline" onClick={() => addSkill(skillInput)}>Add</button>
               </div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {skillSuggestions
-                  .filter((s) => !form.skillsRequired.includes(s))
-                  .map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => addSkill(s)}
-                      className="rounded-md border border-[var(--border-color)] px-2 py-1 text-xs text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
-                    >
-                      + {s}
-                    </button>
-                  ))}
+              {/* Suggestions */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                {skillSuggestions.filter((s) => !form.skillsRequired.includes(s)).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => addSkill(s)}
+                    className="skill-chip"
+                    style={{ cursor: "pointer", border: "none" }}
+                  >
+                    + {s}
+                  </button>
+                ))}
               </div>
+            </Field>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button type="button" className="btn btn-ghost" onClick={() => setStep(0)}>Back</button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => { if (form.roleNeeded) setStep(2); }}
+              >
+                Next: Logistics
+                <ArrowRight style={{ width: 15, height: 15 }} />
+              </button>
             </div>
-          </div>
-        </div>
+          </Section>
+        )}
 
-        {/* Logistics */}
-        <div className="card p-6">
-          <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-[var(--text-muted)]">Logistics</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="label">Budget Range *</label>
+        {/* Step 2: Logistics */}
+        {step === 2 && (
+          <Section title="Logistics">
+            <Field label="Budget Range *">
               <select
                 required
                 value={form.budgetRange}
                 onChange={(e) => setForm({ ...form, budgetRange: e.target.value })}
                 className="input"
               >
-                <option value="">Select a budget range</option>
-                {budgetOptions.map((o) => (
-                  <option key={o} value={o}>{o}</option>
-                ))}
+                <option value="">Select a range</option>
+                {budgets.map((b) => <option key={b} value={b}>{b}</option>)}
               </select>
-            </div>
-            <div>
-              <label className="label">Timeline *</label>
+            </Field>
+            <Field label="Timeline *">
               <select
                 required
                 value={form.timeline}
@@ -223,36 +296,37 @@ export default function CompanyRequest() {
                 className="input"
               >
                 <option value="">When do you need someone?</option>
-                {timelineOptions.map((o) => (
-                  <option key={o} value={o}>{o}</option>
-                ))}
+                {timelines.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
-            </div>
-            <div>
-              <label className="label">Work Style *</label>
-              <div className="flex gap-3">
-                {[
-                  { val: true, label: "Remote OK" },
-                  { val: false, label: "On-site / Hybrid" },
-                ].map(({ val, label }) => (
+            </Field>
+            <Field label="Work Style *">
+              <div style={{ display: "flex", gap: 10 }}>
+                {[{ val: true, label: "Remote OK" }, { val: false, label: "On-site / Hybrid" }].map(({ val, label }) => (
                   <button
                     key={label}
                     type="button"
                     onClick={() => setForm({ ...form, remote: val })}
-                    className={`flex-1 rounded-xl border py-3 text-sm font-medium transition-colors ${
-                      form.remote === val
-                        ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
-                        : "border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text)]"
-                    }`}
+                    style={{
+                      flex: 1,
+                      padding: "11px",
+                      borderRadius: 11,
+                      border: `1.5px solid ${form.remote === val ? "var(--accent)" : "var(--border)"}`,
+                      background: form.remote === val ? "var(--accent-subtle)" : "transparent",
+                      color: form.remote === val ? "var(--accent)" : "var(--text-muted)",
+                      fontWeight: 600,
+                      fontSize: 14,
+                      cursor: "pointer",
+                      transition: "all 140ms ease",
+                      fontFamily: "inherit",
+                    }}
                   >
                     {label}
                   </button>
                 ))}
               </div>
-            </div>
+            </Field>
             {!form.remote && (
-              <div>
-                <label className="label">Location</label>
+              <Field label="Location">
                 <input
                   type="text"
                   placeholder="e.g. Nairobi, Kenya"
@@ -260,19 +334,20 @@ export default function CompanyRequest() {
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
                   className="input"
                 />
-              </div>
+              </Field>
             )}
-          </div>
-        </div>
-
-        <button type="submit" className="btn-primary w-full justify-center py-3">
-          Submit Request
-          <ArrowRight className="h-4 w-4" />
-        </button>
-
-        <p className="text-center text-xs text-[var(--text-muted)]">
-          We typically respond within 2–3 business days with matched builder profiles.
-        </p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>Back</button>
+              <button type="submit" className="btn btn-primary btn-primary-lg" style={{ flex: 1, justifyContent: "center" }}>
+                Submit Request
+                <ArrowRight style={{ width: 16, height: 16 }} />
+              </button>
+            </div>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", margin: 0 }}>
+              We respond within 2–3 business days with matched builder profiles.
+            </p>
+          </Section>
+        )}
       </form>
     </div>
   );

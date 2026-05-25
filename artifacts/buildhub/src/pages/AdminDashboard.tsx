@@ -1,37 +1,30 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import {
-  Users, Package, Briefcase, ShieldCheck, Eye,
-  CheckCheck, X, LayoutDashboard, MessageSquare, ChevronRight
-} from "lucide-react";
+import { Users, Package, Briefcase, ShieldCheck, CheckCheck, X, ChevronDown, ChevronUp, LayoutDashboard } from "lucide-react";
 import { builders, projects, companyRequests, getBuildersByIds, getInitials } from "../data/seed";
 import { ReputationBadge } from "../components/builders/ReputationBadge";
 import type { Builder, CompanyRequest } from "../types";
 
-const tabs = ["Overview", "Builders", "Company Requests"] as const;
-type Tab = typeof tabs[number];
+type Tab = "Overview" | "Builders" | "Requests";
 
-const statusRequestColors: Record<string, string> = {
-  New: "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]",
-  Reviewed: "bg-[var(--warning)]/10 text-[var(--warning)]",
-  Matched: "bg-[var(--success)]/10 text-[var(--success)]",
-  Closed: "bg-[var(--surface-elevated)] text-[var(--text-muted)]",
-};
-
-const verifyColors: Record<string, string> = {
-  Verified: "bg-[var(--accent)]/10 text-[var(--accent)]",
-  Pending: "bg-[var(--warning)]/10 text-[var(--warning)]",
-  Unverified: "bg-[var(--surface-elevated)] text-[var(--text-muted)]",
-};
-
-function StatCard({ label, value, icon: Icon, accent }: { label: string; value: string | number; icon: React.ElementType; accent?: string }) {
+function StatCard({ value, label, icon: Icon, color = "var(--accent)", bg = "var(--accent-subtle)" }: {
+  value: string | number;
+  label: string;
+  icon: React.ElementType;
+  color?: string;
+  bg?: string;
+}) {
   return (
-    <div className="card p-5">
-      <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${accent || "bg-[var(--accent)]/10"}`}>
-        <Icon className={`h-5 w-5 ${accent ? "text-white" : "text-[var(--accent)]"}`} />
+    <div className="card" style={{ padding: "20px 22px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ width: 42, height: 42, borderRadius: 11, background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon style={{ width: 19, height: 19, color }} />
+        </div>
+        <div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.04em", lineHeight: 1 }}>{value}</div>
+          <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 3 }}>{label}</div>
+        </div>
       </div>
-      <div className="text-2xl font-bold text-[var(--text)]">{value}</div>
-      <div className="mt-0.5 text-sm text-[var(--text-muted)]">{label}</div>
     </div>
   );
 }
@@ -40,85 +33,96 @@ function BuildersTab() {
   const [notes, setNotes] = useState<Record<string, string>>(
     Object.fromEntries(builders.map((b) => [b.id, b.adminNotes || ""]))
   );
-  const [verifications, setVerifications] = useState<Record<string, Builder["verificationStatus"]>>(
+  const [verifs, setVerifs] = useState<Record<string, Builder["verificationStatus"]>>(
     Object.fromEntries(builders.map((b) => [b.id, b.verificationStatus]))
   );
   const [saved, setSaved] = useState<string | null>(null);
 
-  const saveNote = (id: string) => {
-    setSaved(id);
-    setTimeout(() => setSaved(null), 2000);
-  };
+  const save = (id: string) => { setSaved(id); setTimeout(() => setSaved(null), 1800); };
 
   return (
-    <div className="space-y-4">
-      {builders.map((builder) => (
-        <div key={builder.id} className="card p-5">
-          <div className="mb-4 flex flex-wrap items-start gap-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl gradient-bg text-base font-bold text-white">
-              {getInitials(builder.name)}
-            </div>
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <Link href={`/builders/${builder.username}`} className="font-semibold text-[var(--text)] no-underline hover:text-[var(--accent)]">
-                  {builder.name}
-                </Link>
-                <span className="text-sm text-[var(--text-muted)]">· {builder.role}</span>
-                <span className={`ml-auto rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  builder.availability === "Available"
-                    ? "bg-[var(--success)]/10 text-[var(--success)]"
-                    : builder.availability === "Limited"
-                    ? "bg-[var(--warning)]/10 text-[var(--warning)]"
-                    : "bg-[var(--surface-elevated)] text-[var(--text-muted)]"
-                }`}>
-                  {builder.availability}
-                </span>
-              </div>
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                {builder.tags.slice(0, 3).map((tag) => (
-                  <ReputationBadge key={tag} tag={tag} />
-                ))}
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {builders.map((b) => {
+        const shipped = projects.filter((p) => p.builderIds.includes(b.id)).length;
+        return (
+          <div key={b.id} className="card" style={{ padding: 22 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 14, marginBottom: 16 }}>
+              <div className="avatar avatar-lg">{getInitials(b.name)}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <Link
+                    href={`/builders/${b.username}`}
+                    style={{ fontWeight: 700, fontSize: 15, color: "var(--text)", textDecoration: "none" }}
+                  >
+                    {b.name}
+                  </Link>
+                  <span style={{ fontSize: 13, color: "var(--text-muted)" }}>· {b.role}</span>
+                  <span style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-muted)" }}>
+                    <strong style={{ color: "var(--text)", fontWeight: 600 }}>{shipped}</strong> shipped
+                  </span>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                  {b.tags.slice(0, 3).map((tag) => <ReputationBadge key={tag} tag={tag} />)}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Verification:</span>
-            {(["Verified", "Pending", "Unverified"] as Builder["verificationStatus"][]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setVerifications((prev) => ({ ...prev, [builder.id]: v }))}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
-                  verifications[builder.id] === v
-                    ? verifyColors[v]
-                    : "border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text)]"
-                }`}
-              >
-                {v === "Verified" && <CheckCheck className="mr-1 inline h-3 w-3" />}
-                {v === "Unverified" && <X className="mr-1 inline h-3 w-3" />}
-                {v}
+            {/* Verification */}
+            <div style={{ marginBottom: 14 }}>
+              <label className="label" style={{ marginBottom: 8 }}>Verification Status</label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {(["Verified", "Pending", "Unverified"] as Builder["verificationStatus"][]).map((v) => {
+                  const active = verifs[b.id] === v;
+                  const activeStyle = v === "Verified"
+                    ? { border: "1.5px solid var(--accent)", background: "var(--accent-subtle)", color: "var(--accent)" }
+                    : v === "Pending"
+                    ? { border: "1.5px solid var(--warning-border)", background: "var(--warning-bg)", color: "var(--warning)" }
+                    : { border: "1.5px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-muted)" };
+                  return (
+                    <button
+                      key={v}
+                      onClick={() => setVerifs((prev) => ({ ...prev, [b.id]: v }))}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        padding: "6px 14px",
+                        borderRadius: 9,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        transition: "all 140ms ease",
+                        fontFamily: "inherit",
+                        ...(active ? activeStyle : { border: "1.5px solid var(--border)", background: "transparent", color: "var(--text-muted)" }),
+                      }}
+                    >
+                      {v === "Verified" && <CheckCheck style={{ width: 12, height: 12 }} />}
+                      {v === "Unverified" && <X style={{ width: 12, height: 12 }} />}
+                      {v}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className="label">Admin Notes</label>
+              <textarea
+                className="input"
+                rows={2}
+                placeholder="Reliability notes, execution quality, communication..."
+                value={notes[b.id]}
+                onChange={(e) => setNotes((prev) => ({ ...prev, [b.id]: e.target.value }))}
+                style={{ minHeight: 72 }}
+              />
+              <button className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12 }} onClick={() => save(b.id)}>
+                {saved === b.id ? "✓ Saved" : "Save notes"}
               </button>
-            ))}
+            </div>
           </div>
-
-          <div>
-            <label className="label">Admin Notes</label>
-            <textarea
-              className="input"
-              rows={2}
-              placeholder="Add reliability notes, performance observations..."
-              value={notes[builder.id]}
-              onChange={(e) => setNotes((prev) => ({ ...prev, [builder.id]: e.target.value }))}
-            />
-            <button
-              onClick={() => saveNote(builder.id)}
-              className="btn-ghost mt-2 text-xs"
-            >
-              {saved === builder.id ? "✓ Saved" : "Save notes"}
-            </button>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -127,104 +131,152 @@ function RequestsTab() {
   const [statuses, setStatuses] = useState<Record<string, CompanyRequest["status"]>>(
     Object.fromEntries(companyRequests.map((r) => [r.id, r.status]))
   );
-  const [matchInputs, setMatchInputs] = useState<Record<string, string>>(
-    Object.fromEntries(companyRequests.map((r) => [r.id, (r.matchedBuilderIds || []).join(", ")]))
-  );
   const [notes, setNotes] = useState<Record<string, string>>(
     Object.fromEntries(companyRequests.map((r) => [r.id, r.adminNotes || ""]))
   );
   const [expanded, setExpanded] = useState<string | null>(null);
 
+  const statusColors: Record<CompanyRequest["status"], { bg: string; color: string; border: string }> = {
+    New:      { bg: "rgba(59,130,246,0.1)",   color: "#3b82f6",          border: "rgba(59,130,246,0.25)" },
+    Reviewed: { bg: "var(--warning-bg)",       color: "var(--warning)",   border: "var(--warning-border)" },
+    Matched:  { bg: "var(--success-bg)",       color: "var(--success)",   border: "var(--success-border)" },
+    Closed:   { bg: "var(--surface-elevated)", color: "var(--text-muted)",border: "var(--border)" },
+  };
+
   return (
-    <div className="space-y-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {companyRequests.map((req) => {
+        const sc = statusColors[statuses[req.id]];
+        const isOpen = expanded === req.id;
         const matchedBuilders = getBuildersByIds(req.matchedBuilderIds || []);
-        const isExpanded = expanded === req.id;
         return (
-          <div key={req.id} className="card overflow-hidden">
+          <div key={req.id} className="card" style={{ overflow: "hidden" }}>
             <div
-              className="flex cursor-pointer items-start gap-4 p-5"
-              onClick={() => setExpanded(isExpanded ? null : req.id)}
+              style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: 20, cursor: "pointer" }}
+              onClick={() => setExpanded(isOpen ? null : req.id)}
             >
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-[var(--text)]">{req.companyName}</span>
-                  <span className="text-sm text-[var(--text-muted)]">· {req.roleNeeded}</span>
-                  <span className={`ml-auto rounded-full px-2.5 py-0.5 text-xs font-medium ${statusRequestColors[statuses[req.id]]}`}>
+              <div
+                style={{
+                  width: 40, height: 40, borderRadius: 10,
+                  background: "var(--accent-subtle)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 15, fontWeight: 700, color: "var(--accent)",
+                  flexShrink: 0,
+                }}
+              >
+                {req.companyName[0]}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontWeight: 700, fontSize: 15, color: "var(--text)" }}>{req.companyName}</span>
+                  <span style={{ fontSize: 13, color: "var(--text-muted)" }}>· {req.roleNeeded}</span>
+                  <span
+                    className="badge"
+                    style={{ marginLeft: "auto", background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`, fontSize: 11 }}
+                  >
                     {statuses[req.id]}
                   </span>
                 </div>
-                <div className="mt-1 flex flex-wrap gap-1.5">
-                  {req.skillsRequired.map((s) => (
-                    <span key={s} className="rounded-md bg-[var(--surface-elevated)] px-2 py-0.5 text-xs text-[var(--text-muted)]">
-                      {s}
-                    </span>
-                  ))}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 6 }}>
+                  {req.skillsRequired.map((s) => <span key={s} className="skill-chip">{s}</span>)}
                 </div>
-                <div className="mt-2 flex flex-wrap gap-4 text-xs text-[var(--text-muted)]">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 12, color: "var(--text-muted)" }}>
                   <span>💰 {req.budgetRange}</span>
                   <span>⏱ {req.timeline}</span>
                   <span>{req.remote ? "🌐 Remote" : `📍 ${req.location}`}</span>
                 </div>
               </div>
-              <ChevronRight className={`h-4 w-4 flex-shrink-0 text-[var(--text-muted)] transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+              {isOpen
+                ? <ChevronUp style={{ width: 16, height: 16, color: "var(--text-muted)", flexShrink: 0 }} />
+                : <ChevronDown style={{ width: 16, height: 16, color: "var(--text-muted)", flexShrink: 0 }} />
+              }
             </div>
 
-            {isExpanded && (
-              <div className="border-t border-[var(--border-color)] p-5 space-y-4">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="label">Status</label>
-                    <select
-                      value={statuses[req.id]}
-                      onChange={(e) => setStatuses((prev) => ({ ...prev, [req.id]: e.target.value as CompanyRequest["status"] }))}
-                      className="input"
-                    >
-                      {["New", "Reviewed", "Matched", "Closed"].map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="label">Contact</label>
-                    <div className="input flex items-center gap-2 bg-[var(--surface-elevated)] text-sm">
-                      <span>{req.contactEmail}</span>
-                    </div>
+            {isOpen && (
+              <div style={{ borderTop: "1px solid var(--border)", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Status */}
+                <div>
+                  <label className="label">Status</label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {(["New", "Reviewed", "Matched", "Closed"] as CompanyRequest["status"][]).map((s) => {
+                      const c = statusColors[s];
+                      const isActive = statuses[req.id] === s;
+                      return (
+                        <button
+                          key={s}
+                          onClick={() => setStatuses((prev) => ({ ...prev, [req.id]: s }))}
+                          style={{
+                            padding: "6px 14px",
+                            borderRadius: 9,
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            border: `1.5px solid ${isActive ? c.border : "var(--border)"}`,
+                            background: isActive ? c.bg : "transparent",
+                            color: isActive ? c.color : "var(--text-muted)",
+                            transition: "all 140ms ease",
+                            fontFamily: "inherit",
+                          }}
+                        >
+                          {s}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
+                {/* Contact */}
                 <div>
-                  <label className="label">Matched Builders</label>
-                  {matchedBuilders.length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-2">
+                  <label className="label">Contact</label>
+                  <a
+                    href={`mailto:${req.contactEmail}`}
+                    style={{ fontSize: 13, color: "var(--accent)", textDecoration: "none", fontWeight: 500 }}
+                  >
+                    {req.contactEmail}
+                  </a>
+                </div>
+
+                {/* Matched builders */}
+                {matchedBuilders.length > 0 && (
+                  <div>
+                    <label className="label">Matched Builders</label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                       {matchedBuilders.map((b) => (
-                        <Link key={b.id} href={`/builders/${b.username}`} className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)]/10 px-3 py-1 text-sm text-[var(--accent)] no-underline">
-                          <div className="flex h-5 w-5 items-center justify-center rounded-full gradient-bg text-[9px] font-bold text-white">
-                            {getInitials(b.name)}
-                          </div>
+                        <Link
+                          key={b.id}
+                          href={`/builders/${b.username}`}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            padding: "6px 12px",
+                            borderRadius: 9,
+                            background: "var(--accent-subtle)",
+                            color: "var(--accent)",
+                            textDecoration: "none",
+                            fontSize: 13,
+                            fontWeight: 600,
+                            border: "1px solid var(--accent-subtle-md)",
+                          }}
+                        >
+                          <div className="avatar avatar-sm">{getInitials(b.name)}</div>
                           {b.name}
                         </Link>
                       ))}
                     </div>
-                  )}
-                  <input
-                    type="text"
-                    placeholder="Builder IDs (b1, b2, b3...)"
-                    value={matchInputs[req.id]}
-                    onChange={(e) => setMatchInputs((prev) => ({ ...prev, [req.id]: e.target.value }))}
-                    className="input"
-                  />
-                  <p className="mt-1 text-xs text-[var(--text-muted)]">Available: {builders.map((b) => `${b.id} (${b.name.split(" ")[0]})`).join(", ")}</p>
-                </div>
+                  </div>
+                )}
 
+                {/* Notes */}
                 <div>
                   <label className="label">Admin Notes</label>
                   <textarea
                     className="input"
                     rows={2}
-                    placeholder="Matching notes, intro status..."
+                    placeholder="Matching notes, intro status, outcome..."
                     value={notes[req.id]}
                     onChange={(e) => setNotes((prev) => ({ ...prev, [req.id]: e.target.value }))}
+                    style={{ minHeight: 72 }}
                   />
                 </div>
               </div>
@@ -237,147 +289,180 @@ function RequestsTab() {
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<Tab>("Overview");
+  const [tab, setTab] = useState<Tab>("Overview");
 
   const verified = builders.filter((b) => b.verificationStatus === "Verified").length;
   const pending = builders.filter((b) => b.verificationStatus === "Pending").length;
   const newRequests = companyRequests.filter((r) => r.status === "New").length;
 
+  const tabs: Tab[] = ["Overview", "Builders", "Requests"];
+
   return (
-    <div className="mx-auto max-w-5xl">
+    <div style={{ maxWidth: 960, margin: "0 auto" }}>
       {/* Header */}
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)]/10">
-          <LayoutDashboard className="h-5 w-5 text-[var(--accent)]" />
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 32 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: "var(--accent-subtle)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <LayoutDashboard style={{ width: 20, height: 20, color: "var(--accent)" }} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text)]">Admin Dashboard</h1>
-          <p className="text-sm text-[var(--text-muted)]">Manage builders, verify profiles, match companies</p>
+          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--text)", margin: 0 }}>Admin Dashboard</h1>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>Verify builders · match companies · track execution</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-1 rounded-xl border border-[var(--border-color)] bg-[var(--surface)] p-1">
-        {tabs.map((tab) => (
+      <div
+        className="card"
+        style={{ display: "flex", padding: 5, marginBottom: 24, gap: 4 }}
+      >
+        {tabs.map((t) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
-              activeTab === tab
-                ? "bg-[var(--surface-elevated)] text-[var(--text)]"
-                : "text-[var(--text-muted)] hover:text-[var(--text)]"
-            }`}
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              flex: 1,
+              padding: "9px",
+              borderRadius: 9,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              border: "none",
+              background: tab === t ? "var(--surface-elevated)" : "transparent",
+              color: tab === t ? "var(--text)" : "var(--text-muted)",
+              transition: "all 140ms ease",
+              fontFamily: "inherit",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+            }}
           >
-            {tab}
+            {t}
+            {t === "Builders" && pending > 0 && (
+              <span style={{ padding: "1px 6px", borderRadius: 6, background: "var(--warning-bg)", color: "var(--warning)", fontSize: 10, fontWeight: 700 }}>
+                {pending}
+              </span>
+            )}
+            {t === "Requests" && newRequests > 0 && (
+              <span style={{ padding: "1px 6px", borderRadius: 6, background: "rgba(59,130,246,0.1)", color: "#3b82f6", fontSize: 10, fontWeight: 700 }}>
+                {newRequests}
+              </span>
+            )}
           </button>
         ))}
       </div>
 
-      {activeTab === "Overview" && (
-        <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Total Builders" value={builders.length} icon={Users} />
-            <StatCard label="Verified Builders" value={verified} icon={ShieldCheck} />
-            <StatCard label="Projects Shipped" value={projects.length} icon={Package} />
-            <StatCard label="Open Requests" value={newRequests} icon={Briefcase} />
+      {/* Overview */}
+      {tab === "Overview" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14 }}>
+            <StatCard value={builders.length} label="Total Builders" icon={Users} />
+            <StatCard value={verified} label="Verified Builders" icon={ShieldCheck} />
+            <StatCard value={projects.length} label="Projects Shipped" icon={Package} />
+            <StatCard
+              value={newRequests}
+              label="New Requests"
+              icon={Briefcase}
+              color="rgba(59,130,246,0.9)"
+              bg="rgba(59,130,246,0.09)"
+            />
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-2">
-            {/* Pending builders */}
-            <div className="card p-5">
-              <h3 className="mb-4 font-semibold text-[var(--text)]">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 18 }}>
+            {/* Pending verifications */}
+            <div className="card" style={{ padding: 22 }}>
+              <h3 style={{ fontWeight: 700, fontSize: 14, color: "var(--text)", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
                 Pending Verification
                 {pending > 0 && (
-                  <span className="ml-2 rounded-full bg-[var(--warning)]/10 px-2 py-0.5 text-xs text-[var(--warning)]">
+                  <span style={{ padding: "2px 8px", borderRadius: 8, background: "var(--warning-bg)", color: "var(--warning)", fontSize: 11, fontWeight: 700 }}>
                     {pending}
                   </span>
                 )}
               </h3>
               {builders.filter((b) => b.verificationStatus === "Pending").length > 0 ? (
-                <div className="space-y-3">
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {builders.filter((b) => b.verificationStatus === "Pending").map((b) => (
-                    <div key={b.id} className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-bg text-xs font-bold text-white">
-                        {getInitials(b.name)}
+                    <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div className="avatar avatar-sm">{getInitials(b.name)}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{b.name}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{b.role}</div>
                       </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-[var(--text)]">{b.name}</div>
-                        <div className="text-xs text-[var(--text-muted)]">{b.role}</div>
-                      </div>
-                      <button
-                        onClick={() => setActiveTab("Builders")}
-                        className="flex items-center gap-1 text-xs text-[var(--accent)] hover:text-[var(--accent-hover)]"
-                      >
-                        Review <ChevronRight className="h-3 w-3" />
+                      <button className="btn btn-ghost" style={{ fontSize: 12, padding: "5px 10px" }} onClick={() => setTab("Builders")}>
+                        Review
                       </button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-[var(--text-muted)]">All builders reviewed.</p>
+                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>All builders reviewed. ✓</p>
               )}
             </div>
 
-            {/* New company requests */}
-            <div className="card p-5">
-              <h3 className="mb-4 font-semibold text-[var(--text)]">
+            {/* New requests */}
+            <div className="card" style={{ padding: 22 }}>
+              <h3 style={{ fontWeight: 700, fontSize: 14, color: "var(--text)", margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
                 New Company Requests
                 {newRequests > 0 && (
-                  <span className="ml-2 rounded-full bg-[var(--accent-blue)]/10 px-2 py-0.5 text-xs text-[var(--accent-blue)]">
+                  <span style={{ padding: "2px 8px", borderRadius: 8, background: "rgba(59,130,246,0.1)", color: "#3b82f6", fontSize: 11, fontWeight: 700 }}>
                     {newRequests}
                   </span>
                 )}
               </h3>
               {companyRequests.filter((r) => r.status === "New").length > 0 ? (
-                <div className="space-y-3">
-                  {companyRequests.filter((r) => r.status === "New").map((req) => (
-                    <div key={req.id} className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--accent-blue)]/10 text-xs font-bold text-[var(--accent-blue)]">
-                        {req.companyName[0]}
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {companyRequests.filter((r) => r.status === "New").map((r) => (
+                    <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 34, height: 34, borderRadius: 9, background: "rgba(59,130,246,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#3b82f6", flexShrink: 0 }}>
+                        {r.companyName[0]}
                       </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-[var(--text)]">{req.companyName}</div>
-                        <div className="text-xs text-[var(--text-muted)]">{req.roleNeeded}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{r.companyName}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{r.roleNeeded}</div>
                       </div>
-                      <button
-                        onClick={() => setActiveTab("Company Requests")}
-                        className="flex items-center gap-1 text-xs text-[var(--accent)] hover:text-[var(--accent-hover)]"
-                      >
-                        Match <ChevronRight className="h-3 w-3" />
+                      <button className="btn btn-ghost" style={{ fontSize: 12, padding: "5px 10px" }} onClick={() => setTab("Requests")}>
+                        Match
                       </button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-[var(--text-muted)]">No new requests.</p>
+                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>No new requests.</p>
               )}
             </div>
           </div>
 
           {/* Recent projects */}
-          <div className="card p-5">
-            <h3 className="mb-4 font-semibold text-[var(--text)]">Recent Projects</h3>
-            <div className="space-y-3">
-              {projects.slice(0, 4).map((p) => {
+          <div className="card" style={{ padding: 22 }}>
+            <h3 style={{ fontWeight: 700, fontSize: 14, color: "var(--text)", margin: "0 0 16px" }}>Recent Projects</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              {projects.slice(0, 5).map((p, i) => {
                 const team = getBuildersByIds(p.builderIds);
+                const sc = {
+                  Idea: "status-pill status-idea",
+                  Building: "status-pill status-building",
+                  Launched: "status-pill status-launched",
+                  Verified: "status-pill status-verified",
+                }[p.status];
                 return (
-                  <div key={p.id} className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--accent)]/10">
-                      <Package className="h-4 w-4 text-[var(--accent)]" />
+                  <div
+                    key={p.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "12px 0",
+                      borderTop: i > 0 ? "1px solid var(--border)" : "none",
+                    }}
+                  >
+                    <div style={{ width: 34, height: 34, borderRadius: 9, background: "var(--accent-subtle)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Package style={{ width: 15, height: 15, color: "var(--accent)" }} />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-[var(--text)]">{p.name}</div>
-                      <div className="text-xs text-[var(--text-muted)]">
-                        {team.map((b) => b.name.split(" ")[0]).join(", ")}
-                      </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{p.name}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{team.map((b) => b.name.split(" ")[0]).join(", ")}</div>
                     </div>
-                    <span className={`badge ${
-                      p.status === "Verified" ? "status-verified" :
-                      p.status === "Launched" ? "status-launched" :
-                      p.status === "Building" ? "status-building" : "status-idea"
-                    }`}>
-                      {p.status}
-                    </span>
+                    <span className={sc}>{p.status}</span>
                   </div>
                 );
               })}
@@ -386,8 +471,8 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {activeTab === "Builders" && <BuildersTab />}
-      {activeTab === "Company Requests" && <RequestsTab />}
+      {tab === "Builders" && <BuildersTab />}
+      {tab === "Requests" && <RequestsTab />}
     </div>
   );
 }

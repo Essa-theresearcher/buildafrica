@@ -1,85 +1,96 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Search, ShieldCheck, MapPin, Briefcase } from "lucide-react";
+import { Search, ShieldCheck, MapPin, Briefcase, SlidersHorizontal } from "lucide-react";
 import { builders, projects, getInitials } from "../data/seed";
 import { ReputationBadge } from "../components/builders/ReputationBadge";
 import type { Builder } from "../types";
 
-function Avatar({ name }: { name: string }) {
-  return (
-    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl gradient-bg text-lg font-bold text-white">
-      {getInitials(name)}
-    </div>
-  );
-}
-
 function BuilderCard({ builder }: { builder: Builder }) {
-  const builderProjects = projects.filter((p) => p.builderIds.includes(builder.id));
+  const shipped = projects.filter((p) => p.builderIds.includes(builder.id)).length;
+
+  const availClass = builder.availability === "Available"
+    ? "avail-available" : builder.availability === "Limited"
+    ? "avail-limited" : "avail-unavail";
+
   return (
     <Link
       href={`/builders/${builder.username}`}
-      className="card block p-5 no-underline"
+      className="card card-interactive"
+      style={{ display: "flex", flexDirection: "column", padding: 22, textDecoration: "none" }}
     >
-      <div className="mb-4 flex items-start gap-4">
-        <Avatar name={builder.name} />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-[var(--text)]">{builder.name}</span>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 16 }}>
+        <div className="avatar avatar-lg">{getInitials(builder.name)}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6, marginBottom: 4 }}>
+            <span style={{ fontWeight: 700, fontSize: 15, color: "var(--text)", letterSpacing: "-0.01em" }}>
+              {builder.name}
+            </span>
             {builder.verificationStatus === "Verified" && (
-              <ShieldCheck className="h-4 w-4 text-[var(--accent)]" />
+              <ShieldCheck style={{ width: 14, height: 14, color: "var(--accent)", flexShrink: 0 }} />
             )}
-            <span
-              className={`ml-auto rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                builder.availability === "Available"
-                  ? "bg-[var(--success)]/10 text-[var(--success)]"
-                  : builder.availability === "Limited"
-                  ? "bg-[var(--warning)]/10 text-[var(--warning)]"
-                  : "bg-[var(--surface-elevated)] text-[var(--text-muted)]"
-              }`}
-            >
+            <span className={`badge ${availClass}`} style={{ marginLeft: "auto", fontSize: 11 }}>
               {builder.availability}
             </span>
           </div>
-          <div className="mt-0.5 flex items-center gap-1 text-sm text-[var(--text-muted)]">
-            <Briefcase className="h-3.5 w-3.5" />
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 13, color: "var(--text-muted)", marginBottom: 2 }}>
+            <Briefcase style={{ width: 12, height: 12, flexShrink: 0 }} />
             {builder.role}
           </div>
-          <div className="mt-0.5 flex items-center gap-1 text-xs text-[var(--text-muted)]">
-            <MapPin className="h-3 w-3" />
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--text-muted)" }}>
+            <MapPin style={{ width: 11, height: 11, flexShrink: 0 }} />
             {builder.location}
           </div>
         </div>
       </div>
 
-      <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-[var(--text-muted)]">
+      {/* Bio */}
+      <p style={{
+        fontSize: 13,
+        color: "var(--text-muted)",
+        lineHeight: 1.65,
+        marginBottom: 16,
+        display: "-webkit-box",
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical",
+        overflow: "hidden",
+        flex: 1,
+      }}>
         {builder.bio}
       </p>
 
-      <div className="mb-4 flex flex-wrap gap-1.5">
-        {builder.skills.slice(0, 4).map((skill) => (
-          <span
-            key={skill}
-            className="rounded-md bg-[var(--surface-elevated)] px-2.5 py-1 text-xs text-[var(--text-muted)]"
-          >
-            {skill}
-          </span>
+      {/* Skills */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+        {builder.skills.slice(0, 4).map((s) => (
+          <span key={s} className="skill-chip">{s}</span>
         ))}
         {builder.skills.length > 4 && (
-          <span className="rounded-md bg-[var(--surface-elevated)] px-2.5 py-1 text-xs text-[var(--text-muted)]">
-            +{builder.skills.length - 4}
-          </span>
+          <span className="skill-chip">+{builder.skills.length - 4}</span>
         )}
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-1.5">
+      {/* Reputation tags */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 16 }}>
         {builder.tags.slice(0, 3).map((tag) => (
           <ReputationBadge key={tag} tag={tag} />
         ))}
       </div>
 
-      <div className="flex items-center justify-between border-t border-[var(--border-color)] pt-3 text-xs text-[var(--text-muted)]">
-        <span>{builderProjects.length} project{builderProjects.length !== 1 ? "s" : ""} shipped</span>
-        <span className="text-[var(--accent)]">View profile →</span>
+      {/* Footer */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderTop: "1px solid var(--border)",
+        paddingTop: 14,
+        fontSize: 12,
+        color: "var(--text-muted)",
+      }}>
+        <span>
+          <strong style={{ color: "var(--text)", fontWeight: 600 }}>{shipped}</strong>{" "}
+          project{shipped !== 1 ? "s" : ""} shipped
+        </span>
+        <span style={{ color: "var(--accent)", fontWeight: 600, fontSize: 12 }}>View profile →</span>
       </div>
     </Link>
   );
@@ -92,72 +103,85 @@ export default function Builders() {
 
   const filtered = builders.filter((b) => {
     const q = search.toLowerCase();
-    const matchesSearch =
-      !q ||
-      b.name.toLowerCase().includes(q) ||
-      b.role.toLowerCase().includes(q) ||
-      b.skills.some((s) => s.toLowerCase().includes(q));
-    const matchesAvail =
-      filterAvail === "all" || b.availability === filterAvail;
-    const matchesVerified =
-      !filterVerified || b.verificationStatus === "Verified";
-    return matchesSearch && matchesAvail && matchesVerified;
+    const matchSearch = !q || b.name.toLowerCase().includes(q) || b.role.toLowerCase().includes(q) || b.skills.some((s) => s.toLowerCase().includes(q));
+    const matchAvail = filterAvail === "all" || b.availability === filterAvail;
+    const matchVerify = !filterVerified || b.verificationStatus === "Verified";
+    return matchSearch && matchAvail && matchVerify;
   });
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[var(--text)]">Builders Directory</h1>
-        <p className="mt-2 text-sm text-[var(--text-muted)]">
-          Vetted builders who've shipped real products. Browse by skill, availability, or verification status.
+      {/* Page header */}
+      <div style={{ marginBottom: 36 }}>
+        <div className="section-eyebrow" style={{ marginBottom: 8 }}>Directory</div>
+        <h1 style={{ fontSize: "clamp(26px, 4vw, 38px)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--text)", margin: "0 0 10px" }}>
+          Builders Directory
+        </h1>
+        <p style={{ fontSize: 15, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 480 }}>
+          Vetted builders who've shipped real products. Every profile reflects actual execution — not a portfolio.
         </p>
       </div>
 
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+      {/* Filters */}
+      <div
+        className="card"
+        style={{ padding: "16px 20px", marginBottom: 28, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}
+      >
+        <div style={{ position: "relative", flex: "1 1 200px", minWidth: 180 }}>
+          <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 15, height: 15, color: "var(--text-muted)" }} />
           <input
             type="search"
-            placeholder="Search by name, role, or skill..."
+            placeholder="Name, role, skill..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input pl-10"
+            className="input"
+            style={{ paddingLeft: 36, height: 38, fontSize: 13 }}
           />
         </div>
+
         <select
           value={filterAvail}
           onChange={(e) => setFilterAvail(e.target.value)}
-          className="input sm:w-44"
+          className="input"
+          style={{ width: "auto", minWidth: 160, height: 38, fontSize: 13 }}
         >
           <option value="all">All availability</option>
           <option value="Available">Available</option>
           <option value="Limited">Limited</option>
           <option value="Unavailable">Unavailable</option>
         </select>
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text-muted)]">
+
+        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
           <input
             type="checkbox"
             checked={filterVerified}
             onChange={(e) => setFilterVerified(e.target.checked)}
-            className="h-4 w-4 accent-[var(--accent)]"
+            style={{ width: 15, height: 15, accentColor: "var(--accent)", cursor: "pointer" }}
           />
+          <ShieldCheck style={{ width: 13, height: 13, color: filterVerified ? "var(--accent)" : "var(--text-muted)" }} />
           Verified only
         </label>
+
+        <span style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: "auto" }}>
+          <strong style={{ color: "var(--text)", fontWeight: 600 }}>{filtered.length}</strong> builder{filtered.length !== 1 ? "s" : ""}
+        </span>
       </div>
 
-      <div className="mb-4 text-sm text-[var(--text-muted)]">
-        {filtered.length} builder{filtered.length !== 1 ? "s" : ""}
-      </div>
-
+      {/* Grid */}
       {filtered.length > 0 ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((b) => (
-            <BuilderCard key={b.id} builder={b} />
-          ))}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 20 }}>
+          {filtered.map((b) => <BuilderCard key={b.id} builder={b} />)}
         </div>
       ) : (
-        <div className="py-20 text-center text-[var(--text-muted)]">
-          No builders match your search.
+        <div
+          className="card"
+          style={{ padding: "60px 24px", textAlign: "center" }}
+        >
+          <SlidersHorizontal style={{ width: 32, height: 32, color: "var(--text-muted)", margin: "0 auto 12px" }} />
+          <p style={{ fontSize: 15, color: "var(--text-muted)" }}>No builders match your filters.</p>
+          <button className="btn btn-ghost" style={{ marginTop: 12 }} onClick={() => { setSearch(""); setFilterAvail("all"); setFilterVerified(false); }}>
+            Clear filters
+          </button>
         </div>
       )}
     </div>
