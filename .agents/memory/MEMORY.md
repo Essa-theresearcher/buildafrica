@@ -1,0 +1,3 @@
+- [Clerk setup](clerk-setup.md) — Clerk wired with proxy; theme context extracted to lib/theme.ts to avoid circular import with Navbar
+- [API server port](api-port.md) — API server runs on port 8080 (not 5000); Vite proxies /api/* to port 8080 in dev
+- [Verification feature](verification-feature.md) — Full verification flow: 4 DB tables, 7 API routes, 3 frontend pages, admin checklist modal

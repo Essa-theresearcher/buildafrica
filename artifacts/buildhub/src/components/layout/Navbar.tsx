@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Layers } from "lucide-react";
+import { Menu, X, Layers, ShieldCheck } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import { useTheme } from "../../App";
+import { useTheme } from "../../lib/theme";
+import { useUser, useClerk, Show } from "@clerk/react";
 
 const links = [
   { href: "/builders", label: "Builders" },
@@ -14,6 +15,10 @@ export function Navbar() {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { theme, toggle } = useTheme();
+  const { user } = useUser();
+  const { signOut } = useClerk();
+
+  const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
   return (
     <header
@@ -46,13 +51,8 @@ export function Navbar() {
           <div
             className="gradient-bg"
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 10,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
+              width: 34, height: 34, borderRadius: 10,
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}
           >
             <Layers style={{ width: 17, height: 17, color: "#fff" }} />
@@ -73,11 +73,8 @@ export function Navbar() {
                 key={l.href}
                 href={l.href}
                 style={{
-                  padding: "6px 14px",
-                  borderRadius: 9,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  textDecoration: "none",
+                  padding: "6px 14px", borderRadius: 9,
+                  fontSize: 14, fontWeight: 500, textDecoration: "none",
                   color: active ? "var(--accent)" : "var(--text-muted)",
                   background: active ? "var(--accent-subtle)" : "transparent",
                   transition: "all 160ms ease",
@@ -104,35 +101,75 @@ export function Navbar() {
         {/* Right */}
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
           <ThemeToggle theme={theme} onToggle={toggle} />
-          <Link
-            href="/admin"
-            className="hidden sm:inline-flex"
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "var(--text-muted)",
-              textDecoration: "none",
-              padding: "6px 12px",
-              borderRadius: 8,
-            }}
-          >
-            Admin
-          </Link>
-          <Link href="/builders" className="btn btn-primary" style={{ padding: "8px 18px", fontSize: 13 }}>
-            Join as Builder
-          </Link>
+
+          {/* Show when signed out */}
+          <Show when="signed-out">
+            <Link
+              href="/sign-in"
+              className="hidden sm:inline-flex"
+              style={{
+                fontSize: 13, fontWeight: 500, color: "var(--text-muted)",
+                textDecoration: "none", padding: "6px 12px", borderRadius: 8,
+              }}
+            >
+              Sign In
+            </Link>
+            <Link href="/sign-up" className="btn btn-primary" style={{ padding: "8px 18px", fontSize: 13 }}>
+              Join BuildHub
+            </Link>
+          </Show>
+
+          {/* Show when signed in */}
+          <Show when="signed-in">
+            <Link
+              href="/verify"
+              className="hidden sm:inline-flex"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 13, fontWeight: 600,
+                color: location.startsWith("/verify") ? "var(--accent)" : "var(--text-muted)",
+                textDecoration: "none", padding: "6px 12px", borderRadius: 8,
+              }}
+            >
+              <ShieldCheck style={{ width: 13, height: 13 }} />
+              Get Verified
+            </Link>
+            <button
+              onClick={() => signOut({ redirectUrl: basePath || "/" })}
+              style={{
+                fontSize: 13, fontWeight: 500, color: "var(--text-muted)",
+                background: "none", border: "1px solid var(--border)",
+                padding: "6px 12px", borderRadius: 8, cursor: "pointer",
+                display: "none",
+              }}
+              className="sm:block hidden"
+            >
+              Sign Out
+            </button>
+            {user && (
+              <div
+                style={{
+                  width: 32, height: 32, borderRadius: "50%",
+                  background: "var(--gradient)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 13, fontWeight: 700, color: "#fff",
+                  cursor: "pointer", flexShrink: 0,
+                }}
+                title={user.fullName || user.emailAddresses?.[0]?.emailAddress}
+                onClick={() => signOut({ redirectUrl: basePath || "/" })}
+              >
+                {(user.fullName || user.firstName || user.emailAddresses?.[0]?.emailAddress || "?")[0].toUpperCase()}
+              </div>
+            )}
+          </Show>
+
+          {/* Mobile menu toggle */}
           <button
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 36,
-              height: 36,
-              borderRadius: 9,
-              border: "1px solid var(--border)",
-              background: "transparent",
-              color: "var(--text-muted)",
-              cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: 36, height: 36, borderRadius: 9,
+              border: "1px solid var(--border)", background: "transparent",
+              color: "var(--text-muted)", cursor: "pointer",
             }}
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden"
@@ -158,33 +195,61 @@ export function Navbar() {
               href={l.href}
               onClick={() => setMobileOpen(false)}
               style={{
-                display: "block",
-                padding: "10px 12px",
-                borderRadius: 9,
-                fontSize: 14,
-                fontWeight: 500,
+                display: "block", padding: "10px 12px", borderRadius: 9,
+                fontSize: 14, fontWeight: 500, textDecoration: "none",
                 color: location === l.href ? "var(--accent)" : "var(--text-muted)",
-                textDecoration: "none",
               }}
             >
               {l.label}
             </Link>
           ))}
-          <Link
-            href="/admin"
-            onClick={() => setMobileOpen(false)}
-            style={{
-              display: "block",
-              padding: "10px 12px",
-              borderRadius: 9,
-              fontSize: 14,
-              fontWeight: 500,
-              color: "var(--text-muted)",
-              textDecoration: "none",
-            }}
-          >
-            Admin
-          </Link>
+          <Show when="signed-in">
+            <Link
+              href="/verify"
+              onClick={() => setMobileOpen(false)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "10px 12px", borderRadius: 9,
+                fontSize: 14, fontWeight: 500, color: "var(--accent)", textDecoration: "none",
+              }}
+            >
+              <ShieldCheck style={{ width: 14, height: 14 }} />
+              Get Verified
+            </Link>
+            <button
+              onClick={() => { signOut({ redirectUrl: basePath || "/" }); setMobileOpen(false); }}
+              style={{
+                display: "block", width: "100%", textAlign: "left",
+                padding: "10px 12px", borderRadius: 9,
+                fontSize: 14, fontWeight: 500, color: "var(--text-muted)",
+                background: "none", border: "none", cursor: "pointer",
+              }}
+            >
+              Sign Out
+            </button>
+          </Show>
+          <Show when="signed-out">
+            <Link
+              href="/sign-in"
+              onClick={() => setMobileOpen(false)}
+              style={{
+                display: "block", padding: "10px 12px", borderRadius: 9,
+                fontSize: 14, fontWeight: 500, color: "var(--text-muted)", textDecoration: "none",
+              }}
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/sign-up"
+              onClick={() => setMobileOpen(false)}
+              style={{
+                display: "block", padding: "10px 12px", borderRadius: 9,
+                fontSize: 14, fontWeight: 700, color: "var(--accent)", textDecoration: "none",
+              }}
+            >
+              Join BuildHub
+            </Link>
+          </Show>
         </div>
       )}
     </header>
