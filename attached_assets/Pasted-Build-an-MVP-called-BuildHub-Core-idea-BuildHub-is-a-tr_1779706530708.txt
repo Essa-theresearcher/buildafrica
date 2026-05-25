@@ -1,0 +1,99 @@
+Build an MVP called BuildHub.
+
+Core idea:
+BuildHub is a trusted builder discovery platform. It helps developers create proof of execution through shipped projects, collaboration history, and verified builder profiles. The goal is to help companies find reliable builders from a trusted community.
+
+Do NOT build a social media app.
+Do NOT build generic productivity tools.
+Focus only on trusted execution → opportunity matching.
+
+MVP Features:
+
+1. Landing page
+- Explain BuildHub in one sentence:
+  “BuildHub helps serious builders prove execution and get discovered for real opportunities.”
+- CTA buttons:
+  “Join as Builder”
+  “Find Builders”
+
+2. Builder Profiles
+Each builder profile should include:
+- Name
+- Location
+- Role
+- Skills
+- Projects shipped
+- Collaboration history
+- Availability
+- Verification status
+- Short bio
+- Contact button
+
+3. Project Showcase
+Each project should include:
+- Project name
+- Description
+- Builder/team members
+- Tech stack
+- Status: Idea / Building / Launched / Verified
+- Link/demo field
+- What the builder contributed
+
+4. Company Request Form
+Companies can submit:
+- Company name
+- Role needed
+- Skills required
+- Budget range
+- Remote/local
+- Timeline
+- Contact email
+
+5. Admin Dashboard
+Admin can:
+- View all builders
+- Approve/verify builders
+- View company requests
+- Match builders to company requests
+- Add notes about reliability and execution
+
+6. Simple Reputation Signals
+Do NOT use complex AI scoring yet.
+Use simple tags:
+- Verified Builder
+- Shipped Project
+- Reliable Collaborator
+- Available for Work
+- Coffee & Code Member
+
+Tech requirements:
+- Use React frontend
+- Use clean modern UI
+- Use Tailwind CSS
+- Use Supabase or Replit database for backend
+- Make it mobile-responsive
+- Include dummy seed data for Nairobi builders and companies
+- Keep the design minimal, serious, and professional
+
+Pages:
+- Home
+- Builders Directory
+- Builder Profile
+- Projects
+- Company Request
+- Admin Dashboard
+
+Design style:
+- Minimal
+- Clean
+- Trustworthy
+- No loud gamification
+- No leaderboards
+- No fake social feed
+
+Important product principle:
+The platform must reward proof of work, not self-promotion.
+Everything should help answer:
+“Can this person actually build and deliver reliably?”
+
+Build the first working MVP.
