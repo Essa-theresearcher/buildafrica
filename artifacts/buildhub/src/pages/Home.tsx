@@ -148,21 +148,6 @@ const statuses: Record<string, string> = {
   Verified: "status-pill status-verified",
 };
 
-const gaps = [
-  {
-    platform: "Upwork",
-    problem: "Zero proof-of-work. A builder with 10 shipped products looks identical to someone who has never shipped anything.",
-  },
-  {
-    platform: "LinkedIn",
-    problem: "Rewards connections and self-promotion. No way to verify \"I built this product and it works.\"",
-  },
-  {
-    platform: "Toptal",
-    problem: "$60–200/hour. Built for Silicon Valley budgets, not East African startups.",
-  },
-];
-
 export default function Home() {
   const verifiedCount = builders.filter((b) => b.verificationStatus === "Verified").length;
   const locations = [...new Set(builders.map((b) => b.location.split(",")[0]))];
@@ -230,78 +215,6 @@ export default function Home() {
               <strong style={{ color: "var(--text)", fontWeight: 700 }}>{verifiedCount} verified builders</strong> from {locations.join(", ")}
             </span>
           </div>
-        </div>
-      </section>
-
-      {/* ── The gap ──────────────────────────────────────────── */}
-      <section>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <div className="section-eyebrow" style={{ justifyContent: "center", marginBottom: 12 }}>The Problem</div>
-          <h2 style={{ fontSize: "clamp(22px, 3.5vw, 34px)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--text)", margin: "0 0 12px" }}>
-            Every existing platform gets this wrong
-          </h2>
-          <p style={{ fontSize: 15, color: "var(--text-muted)", maxWidth: 500, margin: "0 auto", lineHeight: 1.65 }}>
-            When a company in Nairobi needs a builder, they post on Upwork and get 200 bids, or ask in WhatsApp and hire whoever responds first.
-          </p>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
-          {gaps.map(({ platform, problem }) => (
-            <div
-              key={platform}
-              className="card"
-              style={{ padding: 24 }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                <span
-                  style={{
-                    display: "inline-block",
-                    padding: "3px 10px",
-                    borderRadius: 6,
-                    background: "var(--danger-bg)",
-                    color: "var(--danger)",
-                    border: "1px solid var(--danger-border)",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    letterSpacing: "0.03em",
-                  }}
-                >
-                  {platform}
-                </span>
-              </div>
-              <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, margin: 0 }}>{problem}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Core principle callout */}
-        <div
-          style={{
-            marginTop: 20,
-            borderRadius: 16,
-            border: "1.5px solid var(--accent-subtle-md)",
-            background: "var(--accent-subtle)",
-            padding: "24px 28px",
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
-        >
-          <div
-            style={{
-              width: 40, height: 40, borderRadius: 11,
-              background: "var(--gradient)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <ShieldCheck style={{ width: 20, height: 20, color: "#fff" }} />
-          </div>
-          <p style={{ fontSize: 15, color: "var(--text)", lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
-            <strong style={{ fontWeight: 800 }}>BuildHub's core principle:</strong>{" "}
-            A builder with zero clients but 5 live shipped products is more credible than someone with 50 Upwork jobs and no portfolio. Proof of execution beats proof of platform activity. Always.
-          </p>
         </div>
       </section>
 

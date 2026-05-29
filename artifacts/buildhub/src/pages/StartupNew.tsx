@@ -86,7 +86,7 @@ export default function StartupNew() {
   const [submitError, setSubmitError] = useState("");
   const [slugChecking, setSlugChecking] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
-  const slugCheckRef = useRef<ReturnType<typeof setTimeout>>();
+  const slugCheckRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [marketTag, setMarketTag] = useState("");
 
   // Form state
@@ -125,7 +125,7 @@ export default function StartupNew() {
 
   function checkSlug(slug: string) {
     if (!slug) { setSlugAvailable(null); return; }
-    clearTimeout(slugCheckRef.current);
+    if (slugCheckRef.current) clearTimeout(slugCheckRef.current);
     setSlugChecking(true);
     slugCheckRef.current = setTimeout(async () => {
       try {
@@ -390,7 +390,6 @@ export default function StartupNew() {
                     value={marketTag}
                     onChange={(e) => setMarketTag(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addMarket(); } }}
-                    onBlur={addMarket}
                   />
                 </Field>
               </div>
@@ -402,7 +401,7 @@ export default function StartupNew() {
                 <ChevronLeft style={{ width: 15, height: 15 }} /> Back
               </button>
               <button className="btn btn-primary" style={{ padding: "11px 24px", display: "flex", alignItems: "center", gap: 6 }}
-                onClick={() => { if (validateStep2()) setStep(3); }}>
+                onClick={() => { addMarket(); if (validateStep2()) setStep(3); }}>
                 Continue <ChevronRight style={{ width: 15, height: 15 }} />
               </button>
             </div>
