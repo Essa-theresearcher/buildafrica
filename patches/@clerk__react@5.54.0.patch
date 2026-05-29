@@ -1,0 +1,48 @@
+diff --git a/dist/index.js b/dist/index.js
+index 61ff77912038daa75b4c7bf8cc5d6c0fff18632e..cb349d1b3ed2fc4959e32a4ee899b2346cf8220f 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -3031,6 +3031,9 @@ var _IsomorphicClerk = class _IsomorphicClerk {
+     return global.Clerk;
+   }
+   async loadClerkUiEntryChunk() {
++    if (typeof import_loadClerkJsScript.loadClerkUiScript !== "function") {
++      return void 0;
++    }
+     await (0, import_loadClerkJsScript.loadClerkUiScript)({
+       ...this.options,
+       publishableKey: __privateGet(this, _publishableKey),
+@@ -3038,9 +3041,6 @@ var _IsomorphicClerk = class _IsomorphicClerk {
+       domain: this.domain,
+       nonce: this.options.nonce
+     });
+-    if (!global.__unstable_ClerkUiCtor) {
+-      throw new Error("Failed to download latest Clerk UI. Contact support@clerk.com.");
+-    }
+     return global.__unstable_ClerkUiCtor;
+   }
+   get version() {
+diff --git a/dist/index.mjs b/dist/index.mjs
+index ff145ad766ded2cf2393603643afe5d0a2e9a472..c578c4e509bdd54cecf46a7a5120e647d5454aa1 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -1668,6 +1668,9 @@ var _IsomorphicClerk = class _IsomorphicClerk {
+     return global.Clerk;
+   }
+   async loadClerkUiEntryChunk() {
++    if (typeof loadClerkUiScript !== "function") {
++      return void 0;
++    }
+     await loadClerkUiScript({
+       ...this.options,
+       publishableKey: __privateGet(this, _publishableKey),
+@@ -1675,9 +1678,6 @@ var _IsomorphicClerk = class _IsomorphicClerk {
+       domain: this.domain,
+       nonce: this.options.nonce
+     });
+-    if (!global.__unstable_ClerkUiCtor) {
+-      throw new Error("Failed to download latest Clerk UI. Contact support@clerk.com.");
+-    }
+     return global.__unstable_ClerkUiCtor;
+   }
+   get version() {

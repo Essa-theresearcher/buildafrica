@@ -1,3 +1,4 @@
 - [Clerk setup](clerk-setup.md) — Clerk wired with proxy; theme context extracted to lib/theme.ts to avoid circular import with Navbar
 - [API server port](api-port.md) — API server runs on port 8080 (not 5000); Vite proxies /api/* to port 8080 in dev
 - [Verification feature](verification-feature.md) — Full verification flow: 4 DB tables, 7 API routes, 3 frontend pages, admin checklist modal
+- [Clerk Expo web patch](clerk-expo-web-patch.md) — @clerk/expo@2.19.0→@clerk/react@5.54.0 calls loadClerkUiScript (absent in all @clerk/shared); pnpm patch no-ops it for web preview.

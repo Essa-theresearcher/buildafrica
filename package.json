@@ -12,6 +12,9 @@
   "pnpm": {
     "overrides": {
       "qs": ">=6.15.2"
+    },
+    "patchedDependencies": {
+      "@clerk/react@5.54.0": "patches/@clerk__react@5.54.0.patch"
     }
   },
   "devDependencies": {

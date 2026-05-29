@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "XvppD5C2ed89-hXNC-qFe"
+uri = "file://artifacts/buildhub-mobile/assets/images/icon.png"
+type = "image"
+title = "buildhub app icon"
