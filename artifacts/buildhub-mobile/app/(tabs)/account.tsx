@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import { useColors } from "@/hooks/useColors";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 type Role = "builder" | "startup" | "company";
 
@@ -29,6 +30,7 @@ export default function AccountScreen() {
   const router = useRouter();
   const { isSignedIn, user } = useUser();
   const { signOut } = useAuth();
+  const isAdmin = useIsAdmin();
 
   const [role, setRole] = useState<Role | null>(null);
   const [loading, setLoading] = useState(false);
@@ -188,6 +190,31 @@ export default function AccountScreen() {
             })}
           </View>
         )}
+
+        <View style={{ height: 28 }} />
+        <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Quick links</Text>
+        <View style={{ gap: 12, marginTop: 14 }}>
+          <OutlineButton
+            label="My portal"
+            icon="grid"
+            onPress={() => router.push("/dashboard" as Href)}
+            testID="link-portal"
+          />
+          <OutlineButton
+            label="Get verified"
+            icon="check-circle"
+            onPress={() => router.push("/verify" as Href)}
+            testID="link-verify"
+          />
+          {isAdmin ? (
+            <OutlineButton
+              label="Admin tools"
+              icon="shield"
+              onPress={() => router.push("/admin" as Href)}
+              testID="link-admin"
+            />
+          ) : null}
+        </View>
 
         <View style={{ height: 24 }} />
         <OutlineButton
