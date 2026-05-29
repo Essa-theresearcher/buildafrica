@@ -151,6 +151,14 @@ const statuses: Record<string, string> = {
 export default function Home() {
   const verifiedCount = builders.filter((b) => b.verificationStatus === "Verified").length;
   const locations = [...new Set(builders.map((b) => b.location.split(",")[0]))];
+  const [showStickyCta, setShowStickyCta] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShowStickyCta(window.scrollY > 620);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 88 }}>
@@ -184,11 +192,11 @@ export default function Home() {
           </h1>
 
           <p style={{ margin: "22px auto 0", fontSize: "clamp(15px, 2vw, 18px)", color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 540 }}>
-            BuildHub is the trust layer that doesn't exist yet — a verified discovery platform where proof of execution beats proof of platform activity. Always.
+            Find East African builders who've actually shipped. Every profile is verified — proof of work over self-promotion.
           </p>
 
           <div style={{ marginTop: 36, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 12 }}>
-            <Link href="/builders" className="btn btn-primary btn-primary-lg">
+            <Link href="/sign-up" className="btn btn-primary btn-primary-lg">
               Join as Builder
               <ArrowRight style={{ width: 16, height: 16 }} />
             </Link>
@@ -218,6 +226,25 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Why BuildHub (quick value strip) ──────────────────── */}
+      <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        {[
+          { icon: ShieldCheck, title: "Verified, not self-reported", desc: "Every builder is reviewed by a human admin before they're listed." },
+          { icon: Package, title: "Proof, not portfolios", desc: "Real shipped products with demos and exactly what each person built." },
+          { icon: Users, title: "Matched, not flooded", desc: "Companies get hand-picked builders — no 200-bid inboxes." },
+        ].map(({ icon: Icon, title, desc }) => (
+          <div key={title} className="card" style={{ padding: 24, display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 11, background: "var(--accent-subtle)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Icon style={{ width: 19, height: 19, color: "var(--accent)" }} />
+            </div>
+            <div>
+              <h3 style={{ fontWeight: 700, fontSize: 15, color: "var(--text)", margin: "0 0 5px", letterSpacing: "-0.01em" }}>{title}</h3>
+              <p style={{ fontSize: 13.5, color: "var(--text-muted)", lineHeight: 1.6, margin: 0 }}>{desc}</p>
+            </div>
+          </div>
+        ))}
+      </section>
+
       {/* ── How it works ─────────────────────────────────────── */}
       <section>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
@@ -233,7 +260,7 @@ export default function Home() {
               step: "01",
               icon: Package,
               title: "Verified shipped products",
-              desc: "Builders document real products with screenshots, demo links, tech stack, and exactly what they personally contributed. Not a portfolio — proof.",
+              desc: "Real products with demos, tech stack, and exactly what each builder shipped. Not a portfolio — proof.",
               color: "var(--accent)",
               bg: "var(--accent-subtle)",
             },
@@ -241,7 +268,7 @@ export default function Home() {
               step: "02",
               icon: ShieldCheck,
               title: "Admin-verified trust signals",
-              desc: "Admins review builders and assign trust tags: Verified Builder, Reliable Collaborator, Shipped Project. These signals are earned, not self-reported.",
+              desc: "Admins review each builder and assign earned trust tags like Verified Builder and Shipped Project — never self-reported.",
               color: "var(--success)",
               bg: "var(--success-bg)",
             },
@@ -249,7 +276,7 @@ export default function Home() {
               step: "03",
               icon: Users,
               title: "Hand-matched to companies",
-              desc: "Companies submit exactly what they need. BuildHub matches them to verified builders who have proof they've shipped exactly this kind of product before.",
+              desc: "Tell us what you need. We hand-match you with verified builders who've shipped exactly this kind of product before.",
               color: "var(--warning)",
               bg: "var(--warning-bg)",
             },
@@ -392,7 +419,7 @@ export default function Home() {
               Built on the Coffee & Code community
             </h2>
             <p style={{ fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7, margin: 0 }}>
-              BuildHub is not a cold-start platform. The first builders already know each other, already ship products, and already trust each other. The platform formalizes and amplifies that existing trust — it doesn't try to manufacture it.
+              BuildHub isn't a cold start. Its first builders already know, ship with, and trust each other — the platform just formalizes that trust instead of manufacturing it.
             </p>
           </div>
           <div style={{ flex: "0 1 260px", display: "flex", flexDirection: "column", gap: 12 }}>
@@ -459,6 +486,35 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ── Sticky "Get started" CTA (appears on scroll) ──────── */}
+      <Link
+        href="/sign-up"
+        aria-label="Get started"
+        style={{
+          position: "fixed",
+          right: "clamp(16px, 4vw, 32px)",
+          bottom: "clamp(16px, 4vw, 28px)",
+          zIndex: 50,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "13px 22px",
+          borderRadius: 999,
+          background: "var(--gradient)",
+          color: "#fff",
+          fontWeight: 700,
+          fontSize: 14.5,
+          textDecoration: "none",
+          boxShadow: "0 8px 28px rgba(79,70,229,0.4)",
+          opacity: showStickyCta ? 1 : 0,
+          transform: showStickyCta ? "translateY(0)" : "translateY(16px)",
+          pointerEvents: showStickyCta ? "auto" : "none",
+          transition: "opacity 240ms ease, transform 240ms ease",
+        }}
+      >
+        Get started <ArrowRight style={{ width: 16, height: 16 }} />
+      </Link>
 
     </div>
   );
