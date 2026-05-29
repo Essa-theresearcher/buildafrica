@@ -23,6 +23,8 @@ import StartupPromote from "@/pages/StartupPromote";
 import AdminMarketing from "@/pages/AdminMarketing";
 import Onboarding from "@/pages/Onboarding";
 import Dashboard from "@/pages/Dashboard";
+import { RolePicker } from "@/components/RolePicker";
+import { type Role, readPendingRole, writePendingRole, clearPendingRole } from "@/hooks/useMyProfile";
 import BuilderPortal from "@/pages/BuilderPortal";
 import StartupPortal from "@/pages/StartupPortal";
 import CompanyPortal from "@/pages/CompanyPortal";
@@ -101,6 +103,12 @@ const clerkAppearance = {
 
 // ── Auth pages ────────────────────────────────────────────────────────────────
 function SignInPage() {
+  // Returning users sign in, not up — drop any stale sign-up role so it can
+  // never auto-apply to an existing account.
+  useEffect(() => {
+    clearPendingRole();
+  }, []);
+
   return (
     <div style={{
       display: "flex", minHeight: "100dvh", alignItems: "center", justifyContent: "center",
@@ -117,17 +125,58 @@ function SignInPage() {
 }
 
 function SignUpPage() {
+  const [selected, setSelected] = useState<Role | null>(() => readPendingRole());
+
+  function handleSelect(role: Role) {
+    setSelected(role);
+    writePendingRole(role);
+  }
+
   return (
     <div style={{
-      display: "flex", minHeight: "100dvh", alignItems: "center", justifyContent: "center",
-      background: "var(--bg)", padding: 24,
+      display: "flex", minHeight: "100dvh", flexDirection: "column", alignItems: "center",
+      background: "var(--bg)", padding: "48px 24px",
     }}>
-      <SignUp
-        routing="path"
-        path={`${basePath}/sign-up`}
-        signInUrl={`${basePath}/sign-in`}
-        forceRedirectUrl={`${basePath}/onboarding`}
-      />
+      <div style={{ width: "100%", maxWidth: 800 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div className="section-eyebrow" style={{ marginBottom: 12 }}>Join BuildHub</div>
+          <h1 style={{ fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--text)", margin: "0 0 10px" }}>
+            First, what brings you here?
+          </h1>
+          <p style={{ fontSize: 16, color: "var(--text-muted)", margin: 0 }}>
+            Pick your role, then create your account — we'll set up your portal automatically.
+          </p>
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <RolePicker selected={selected} onSelect={handleSelect} />
+        </div>
+
+        {selected ? (
+          <>
+            <div style={{ textAlign: "center", marginBottom: 20 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--text)", margin: "0 0 4px" }}>
+                Now create your account
+              </h2>
+              <p style={{ fontSize: 14, color: "var(--text-muted)", margin: 0 }}>
+                Almost there — your role is saved automatically once you sign up.
+              </p>
+            </div>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <SignUp
+                routing="path"
+                path={`${basePath}/sign-up`}
+                signInUrl={`${basePath}/sign-in`}
+                forceRedirectUrl={`${basePath}/dashboard`}
+              />
+            </div>
+          </>
+        ) : (
+          <p style={{ textAlign: "center", fontSize: 14, color: "var(--text-muted)", margin: 0 }}>
+            Choose a role above to continue to account creation.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
