@@ -32,6 +32,11 @@ export interface Builder {
   adminNotes?: string;
 }
 
+export interface ProjectScreenshot {
+  url: string;
+  alt: string;
+}
+
 export interface Project {
   id: string;
   slug: string;
@@ -41,6 +46,9 @@ export interface Project {
   techStack: string[];
   status: ProjectStatus;
   link?: string;
+  repoUrl?: string;
+  videoUrl?: string;
+  screenshots?: ProjectScreenshot[];
   contribution: string;
   featured: boolean;
   createdAt: string;

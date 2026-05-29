@@ -1,10 +1,12 @@
 import { Link } from "wouter";
 import {
-  ShieldCheck, MapPin, Briefcase, Mail, ExternalLink,
+  ShieldCheck, MapPin, Briefcase, Mail,
   ArrowLeft, Users, Package, Clock, Zap, Quote, AlertCircle,
 } from "lucide-react";
 import { getBuilderByUsername, getBuilderById, projects, getBuildersByIds, getInitials } from "../data/seed";
 import { ReputationBadge } from "../components/builders/ReputationBadge";
+import { ProjectMedia } from "../components/projects/ProjectMedia";
+import { ProofLinks } from "../components/projects/ProofLinks";
 
 const STATUS_CLS: Record<string, string> = {
   Idea:     "status-pill status-idea",
@@ -257,25 +259,26 @@ export default function BuilderProfile({ params }: { params: { username: string 
                         <h3 style={{ fontWeight: 700, fontSize: 16, color: "var(--text)", margin: 0, letterSpacing: "-0.01em" }}>
                           {project.name}
                         </h3>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                        <div style={{ flexShrink: 0 }}>
                           <span className={STATUS_CLS[project.status]}>{project.status}</span>
-                          {project.link && (
-                            <a
-                              href={project.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "var(--accent)", textDecoration: "none" }}
-                            >
-                              <ExternalLink style={{ width: 12, height: 12 }} />
-                              Live
-                            </a>
-                          )}
                         </div>
                       </div>
 
                       <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.65, marginBottom: 14 }}>
                         {project.description}
                       </p>
+
+                      {/* VISUAL PROOF — screenshots + video demo */}
+                      <div style={{ marginBottom: 14 }}>
+                        <ProjectMedia name={project.name} screenshots={project.screenshots} videoUrl={project.videoUrl} />
+                      </div>
+
+                      {/* Proof links: Live · Source · Video */}
+                      {(project.link || project.repoUrl || project.videoUrl) && (
+                        <div style={{ marginBottom: 14 }}>
+                          <ProofLinks link={project.link} repoUrl={project.repoUrl} videoUrl={project.videoUrl} size="sm" />
+                        </div>
+                      )}
 
                       {/* THIS BUILDER'S CONTRIBUTION — the key proof signal */}
                       <div

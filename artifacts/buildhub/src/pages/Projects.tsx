@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Search, ExternalLink, Users, Package } from "lucide-react";
+import { Search, Users, Package, ImageIcon, PlayCircle } from "lucide-react";
 import { projects, getBuildersByIds, getInitials } from "../data/seed";
 import { Link } from "wouter";
-import type { ProjectStatus } from "../types";
+import type { ProjectStatus, Project } from "../types";
+import { ProofLinks } from "../components/projects/ProofLinks";
 
 const statuses: Record<string, { cls: string; label: string }> = {
   Idea:     { cls: "status-pill status-idea",     label: "Idea" },
@@ -13,6 +14,77 @@ const statuses: Record<string, { cls: string; label: string }> = {
 
 const ALL = "all" as const;
 type Filter = typeof ALL | ProjectStatus;
+
+/* Lead screenshot thumbnail with graceful fallback for projects without media */
+function CardThumb({ project }: { project: Project }) {
+  const lead = (project.screenshots ?? []).find((s) => s?.url);
+  const [broken, setBroken] = useState(false);
+
+  if (!lead || broken) {
+    return (
+      <div
+        className="gradient-bg"
+        style={{
+          aspectRatio: "16 / 9",
+          borderRadius: 12,
+          marginBottom: 14,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: 0.9,
+        }}
+      >
+        <Package style={{ width: 26, height: 26, color: "rgba(255,255,255,0.85)" }} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: "relative", marginBottom: 14 }}>
+      <img
+        src={lead.url}
+        alt={lead.alt}
+        loading="lazy"
+        onError={() => setBroken(true)}
+        style={{
+          width: "100%",
+          aspectRatio: "16 / 9",
+          objectFit: "cover",
+          borderRadius: 12,
+          border: "1px solid var(--border)",
+          display: "block",
+        }}
+      />
+      <div style={{ position: "absolute", bottom: 8, right: 8, display: "flex", gap: 6 }}>
+        {(project.screenshots?.length ?? 0) > 1 && (
+          <span style={badgeStyle}>
+            <ImageIcon style={{ width: 11, height: 11 }} />
+            {project.screenshots!.length}
+          </span>
+        )}
+        {project.videoUrl && (
+          <span style={badgeStyle}>
+            <PlayCircle style={{ width: 11, height: 11 }} />
+            Video
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const badgeStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  padding: "3px 8px",
+  borderRadius: 7,
+  background: "rgba(0,0,0,0.62)",
+  color: "#fff",
+  fontSize: 11,
+  fontWeight: 600,
+  backdropFilter: "blur(4px)",
+};
 
 export default function Projects() {
   const [search, setSearch] = useState("");
@@ -97,6 +169,9 @@ export default function Projects() {
             const s = statuses[project.status];
             return (
               <div key={project.id} className="card" style={{ display: "flex", flexDirection: "column", padding: 22 }}>
+                {/* Lead screenshot thumbnail */}
+                <CardThumb project={project} />
+
                 {/* Header */}
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
                   <h3 style={{ fontWeight: 700, fontSize: 15, color: "var(--text)", margin: 0 }}>{project.name}</h3>
@@ -151,6 +226,13 @@ export default function Projects() {
                   {project.techStack.length > 4 && <span className="skill-chip">+{project.techStack.length - 4}</span>}
                 </div>
 
+                {/* Proof links: Live · Source · Video */}
+                {(project.link || project.repoUrl || project.videoUrl) && (
+                  <div style={{ marginBottom: 14 }}>
+                    <ProofLinks link={project.link} repoUrl={project.repoUrl} videoUrl={project.videoUrl} size="sm" />
+                  </div>
+                )}
+
                 {/* Footer */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--border)", paddingTop: 14 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -182,17 +264,6 @@ export default function Projects() {
                       )}
                     </span>
                   </div>
-                  {project.link && (
-                    <a
-                      href={project.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "var(--accent)", textDecoration: "none" }}
-                    >
-                      <ExternalLink style={{ width: 12, height: 12 }} />
-                      Demo
-                    </a>
-                  )}
                 </div>
               </div>
             );
